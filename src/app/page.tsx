@@ -1,103 +1,271 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect, useRef } from "react";
+import { motion, useTransform, useScroll } from "framer-motion";
+import Navigation from "../components/Navigation";
+import VideoHeaderSection from "../components/VideoHeaderSection";
+import {
+  ArrowRight,
+  Users,
+  Target,
+  Award,
+  TrendingUp,
+  Sparkles,
+  Zap,
+} from "lucide-react";
+
+export default function HomePage() {
+  const [isVisible, setIsVisible] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  // Scroll-based parallax values - only use global scroll to avoid ref hydration issues
+  const { scrollY } = useScroll();
+
+  const statsY = useTransform(scrollY, [300, 900], [100, -100]);
+  const statsOpacity = useTransform(scrollY, [300, 600], [0, 1]);
+
+  // Background parallax effects
+  const backgroundY = useTransform(scrollY, [0, 1500], [0, -500]);
+
+  // Stats data
+  const stats = [
+    { icon: Users, number: "500+", label: "Happy Clients" },
+    { icon: Target, number: "1000+", label: "Projects Completed" },
+    { icon: Award, number: "50+", label: "Awards Won" },
+    { icon: TrendingUp, number: "95%", label: "Success Rate" },
+  ];
+
+  useEffect(() => {
+    setIsClient(true);
+    setIsVisible(true);
+  }, []);
+
+  // Don't render until client-side
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-blue-100 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="text-blue-900 text-2xl flex items-center gap-3"
+        >
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full"
+          />
+          Loading...
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div
+      ref={containerRef}
+      className="min-h-screen bg-white relative overflow-hidden"
+    >
+      {/* Professional Navigation */}
+      <Navigation />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+      {/* Subtle Professional Background Elements */}
+      <motion.div
+        className="absolute inset-0 overflow-hidden opacity-60"
+        style={{
+          y: backgroundY,
+        }}
+      >
+        {/* Minimal Professional Background Shapes */}
+        <motion.div
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.1, 0.2, 0.1],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-br from-blue-100/40 to-slate-100/40 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            scale: [1.1, 1, 1.1],
+            opacity: [0.15, 0.25, 0.15],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2,
+          }}
+          className="absolute bottom-40 right-20 w-80 h-80 bg-gradient-to-br from-slate-100/40 to-blue-100/40 rounded-full blur-3xl"
+        />
+      </motion.div>
+
+      {/* Main Content */}
+      <div className="pt-20">
+        {/* Video Header Section with Articles */}
+        <VideoHeaderSection />
+
+        {/* NETI Training Excellence Section */}
+        <motion.section
+          className="py-24 relative overflow-hidden"
+          initial={{ opacity: 0, y: 100 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+        >
+          {/* Full Background Image */}
+          <div className="absolute inset-0">
+            <motion.div
+              className="w-full h-full bg-cover bg-center"
+              style={{
+                backgroundImage: "url(/assets/images/nttc.jpg)",
+                // transform: "translateX(-500px)",
+              }}
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.3 }}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            {/* Professional overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/85 via-blue-900/75 to-slate-800/85" />
+          </div>
+
+          {/* Professional Content Layout */}
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-2 gap-16 items-center min-h-[70vh]">
+              {/* Left Side - Visual Balance */}
+              <div className="lg:order-1 hidden lg:block"></div>
+
+              {/* Content Side - Professional Right Layout */}
+              <motion.div
+                className="lg:order-2 space-y-8"
+                initial={{ opacity: 0, x: 100 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                viewport={{ once: true }}
+              >
+                <motion.div
+                  className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/30 mb-6"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                  viewport={{ once: true }}
+                >
+                  <Award className="w-5 h-5 text-white" />
+                  <span className="text-white font-semibold">
+                    ISO 9001:2008 Certified
+                  </span>
+                </motion.div>
+
+                <motion.h2
+                  className="text-4xl md:text-6xl font-bold text-white mb-8 leading-tight"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.6 }}
+                  viewport={{ once: true }}
+                >
+                  Excellence in Maritime Training
+                </motion.h2>
+
+                <motion.p
+                  className="text-xl text-white/90 mb-8 leading-relaxed max-w-2xl"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.8 }}
+                  viewport={{ once: true }}
+                >
+                  Much of our success stems from our adherence to very high
+                  training standards and compliance to a{" "}
+                  <span className="text-blue-200 font-semibold">
+                    "No Training No Deployment Policy,"
+                  </span>{" "}
+                  which is realized through our in-house training center,
+                  NYK-Fil Maritime E-Training Inc. (NETI).
+                </motion.p>
+
+                <motion.p
+                  className="text-xl text-white/90 mb-12 leading-relaxed max-w-2xl"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 1.0 }}
+                  viewport={{ once: true }}
+                >
+                  An ISO 9001:2008 certified company, NETI is engaged in
+                  maritime training using state-of-the-art equipment and
+                  develops customized training courses designed to meet the
+                  specific requirements of Principals.
+                </motion.p>
+
+                {/* Professional Key Features */}
+                <motion.div
+                  className="space-y-6 mb-12"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 1.2 }}
+                  viewport={{ once: true }}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-3 h-3 bg-blue-400 rounded-full mt-2 flex-shrink-0 shadow-lg" />
+                    <div>
+                      <h4 className="text-white font-bold text-lg mb-2">
+                        MARINA Recognition
+                      </h4>
+                      <p className="text-white/90 text-base leading-relaxed">
+                        Duly recognized by the Maritime Industry Authority
+                        (MARINA) for practical assessment of newly passed Marine
+                        Deck and Engine Officers
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-3 h-3 bg-blue-400 rounded-full mt-2 flex-shrink-0 shadow-lg" />
+                    <div>
+                      <h4 className="text-white font-bold text-lg mb-2">
+                        Full Mission Bridge Simulator
+                      </h4>
+                      <p className="text-white/90 text-base leading-relaxed">
+                        Developed scenarios for practical assessment and
+                        computerized grading of examinees' performance
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-3 h-3 bg-blue-400 rounded-full mt-2 flex-shrink-0 shadow-lg" />
+                    <div>
+                      <h4 className="text-white font-bold text-lg mb-2">
+                        Expert Instructors
+                      </h4>
+                      <p className="text-white/90 text-base leading-relaxed">
+                        Active merchant marine officers fresh from onboard
+                        assignments, mostly "home-grown" from our cadetship
+                        training programs
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-3 h-3 bg-blue-400 rounded-full mt-2 flex-shrink-0 shadow-lg" />
+                    <div>
+                      <h4 className="text-white font-bold text-lg mb-2">
+                        JSU-AMOSUP Training Levy
+                      </h4>
+                      <p className="text-white/90 text-base leading-relaxed">
+                        Houses the Diesel Plant Simulator under the auspices of
+                        the IMMAJ/PJMCC in Canlubang, Calamba City
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            </div>
+          </div>
+        </motion.section>
+      </div>
     </div>
   );
 }
