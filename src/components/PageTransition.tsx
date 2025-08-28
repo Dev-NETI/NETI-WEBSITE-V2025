@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Target, Users } from "lucide-react";
+
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 

@@ -37,7 +37,6 @@ export default function Navigation() {
     [0, 100],
     ["rgba(255, 255, 255, 1)", "rgba(255, 255, 255, 1)"]
   );
-  const borderOpacity = useTransform(scrollY, [0, 100], [0.2, 0.4]);
 
   // Prevent body scroll when mega menu is open
   useEffect(() => {

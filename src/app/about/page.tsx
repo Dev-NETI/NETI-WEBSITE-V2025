@@ -2,15 +2,6 @@
 
 import { motion } from "framer-motion";
 import Navigation from "../../components/Navigation";
-import {
-  ArrowRight,
-  Users,
-  Target,
-  Award,
-  TrendingUp,
-  Sparkles,
-} from "lucide-react";
-import Link from "next/link";
 
 export default function AboutPage() {
   return (

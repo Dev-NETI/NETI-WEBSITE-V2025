@@ -11,11 +11,6 @@ import {
   Twitter,
   Linkedin,
   Instagram,
-  Globe,
-  Clock,
-  Shield,
-  Award,
-  Users,
 } from "lucide-react";
 
 export default function Footer() {

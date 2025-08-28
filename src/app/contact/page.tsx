@@ -99,8 +99,8 @@ export default function ContactPage() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-xl text-slate-600 mb-8 leading-relaxed"
             >
-              Ready to start your next project? Let's discuss how we can help
-              transform your business with innovative technology solutions.
+              Ready to start your next project? Let&apos;s discuss how we can
+              help transform your business with innovative technology solutions.
             </motion.p>
           </div>
         </motion.section>
@@ -440,7 +440,9 @@ export default function ContactPage() {
                           <h4 className="text-lg font-semibold text-slate-800 mb-2">
                             {feature.title}
                           </h4>
-                          <p className="text-slate-600">{feature.description}</p>
+                          <p className="text-slate-600">
+                            {feature.description}
+                          </p>
                         </div>
                       </motion.div>
                     ))}
@@ -487,7 +489,7 @@ export default function ContactPage() {
                 Visit Our Office
               </h2>
               <p className="text-xl text-slate-600">
-                Located in the heart of San Francisco's tech district
+                Located in the heart of San Francisco&apos;s tech district
               </p>
             </motion.div>
 
@@ -500,7 +502,9 @@ export default function ContactPage() {
             >
               <div className="text-center text-slate-500">
                 <MapPin className="w-16 h-16 mx-auto mb-4 text-blue-600" />
-                <p className="text-lg font-semibold text-slate-700">Interactive Map Coming Soon</p>
+                <p className="text-lg font-semibold text-slate-700">
+                  Interactive Map Coming Soon
+                </p>
                 <p className="text-sm text-slate-600">
                   123 Business Ave, Suite 100, San Francisco, CA 94105
                 </p>
