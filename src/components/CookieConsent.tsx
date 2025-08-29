@@ -34,12 +34,12 @@ export default function CookieConsent() {
       // Load saved settings
       try {
         const savedSettings = JSON.parse(cookieConsent);
-        setSettings({ ...settings, ...savedSettings });
+        setSettings(prevSettings => ({ ...prevSettings, ...savedSettings }));
       } catch (error) {
         console.error("Error parsing cookie settings:", error);
       }
     }
-  }, [settings]);
+  }, []); // Empty dependency array - only run once on mount
 
   const acceptAll = () => {
     const allAccepted: CookieSettings = {
