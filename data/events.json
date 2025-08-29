@@ -1,0 +1,18 @@
+[
+  {
+    "title": "NETI's Silver Anniversary",
+    "date": "2025-10-24",
+    "time": "1:30 AM - 4:00 PM",
+    "location": "NETI",
+    "description": "Maxime autem laudant",
+    "category": "Conference",
+    "attendees": "0",
+    "image": "/assets/images/nttc.jpg",
+    "status": "upcoming",
+    "maxCapacity": 100,
+    "currentRegistrations": 0,
+    "id": "1756449543330",
+    "createdAt": "2025-08-29T06:39:03.330Z",
+    "updatedAt": "2025-08-29T06:44:56.130Z"
+  }
+]
