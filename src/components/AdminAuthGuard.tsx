@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Shield, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 interface AdminAuthGuardProps {
   children: React.ReactNode;
@@ -75,7 +75,9 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
               className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full mx-auto mb-4"
             />
-            <p className="text-slate-700 font-semibold">Verifying authentication...</p>
+            <p className="text-slate-700 font-semibold">
+              Verifying authentication...
+            </p>
           </div>
         </motion.div>
       </div>

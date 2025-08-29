@@ -8,7 +8,6 @@ import {
   ArrowRight,
   Mail,
   Phone,
-  MapPin,
   Clock,
   Send,
   MessageSquare,
@@ -69,7 +68,7 @@ export default function ContactPage() {
           message: result.error || "Failed to send message. Please try again.",
         });
       }
-    } catch (error) {
+    } catch {
       setSubmitStatus({
         type: "error",
         message: "Network error. Please check your connection and try again.",

@@ -12,7 +12,6 @@ import {
   LogIn,
   Shield,
 } from "lucide-react";
-import Image from "next/image";
 
 interface LoginFormData {
   email: string;
@@ -48,7 +47,7 @@ export default function AdminLoginPage() {
       try {
         const response = await fetch("/api/auth/verify");
         const result: ApiResponse = await response.json();
-        
+
         if (result.success) {
           router.push("/admin/events");
         }
@@ -62,7 +61,7 @@ export default function AdminLoginPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
     if (error) setError("");
   };
@@ -200,7 +199,10 @@ export default function AdminLoginPage() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
-                <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   Email Address
                 </label>
                 <div className="relative">
@@ -226,7 +228,10 @@ export default function AdminLoginPage() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
               >
-                <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   Password
                 </label>
                 <div className="relative">
@@ -274,7 +279,11 @@ export default function AdminLoginPage() {
                   <>
                     <motion.div
                       animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
                       className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                     />
                     Signing In...
@@ -298,7 +307,7 @@ export default function AdminLoginPage() {
 
           {/* Footer */}
           <div className="px-8 pb-8">
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.6 }}
@@ -306,10 +315,11 @@ export default function AdminLoginPage() {
             >
               <p>Default credentials:</p>
               <p className="font-mono bg-slate-100 px-3 py-2 rounded-lg mt-2">
-                <strong>Email:</strong> admin@neti.com.ph<br />
+                <strong>Email:</strong> admin@neti.com.ph
+                <br />
                 <strong>Password:</strong> admin123
               </p>
-            </motion.div>
+            </motion.div> */}
           </div>
         </div>
       </motion.div>
