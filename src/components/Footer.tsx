@@ -24,10 +24,10 @@ export default function Footer() {
       { name: "Contact", href: "/contact" },
     ],
     services: [
-      { name: "Maritime Training", href: "/services#maritime" },
-      { name: "E-Learning Solutions", href: "/services#elearning" },
-      { name: "Certification Programs", href: "/services#certification" },
-      { name: "Consulting Services", href: "/services#consulting" },
+      { name: "Maritime Training", href: "https://netiaccess.com" },
+      // { name: "E-Learning Solutions", href: "/services#elearning" },
+      // { name: "Certification Programs", href: "/services#certification" },
+      // { name: "Consulting Services", href: "/services#consulting" },
     ],
     support: [
       { name: "Help Center", href: "/support" },
@@ -41,40 +41,40 @@ export default function Footer() {
     {
       name: "Facebook",
       icon: Facebook,
-      href: "#",
+      href: "https://www.facebook.com/NETICertified",
       color: "hover:text-blue-400",
     },
-    { name: "Twitter", icon: Twitter, href: "#", color: "hover:text-blue-400" },
-    {
-      name: "LinkedIn",
-      icon: Linkedin,
-      href: "#",
-      color: "hover:text-blue-400",
-    },
-    {
-      name: "Instagram",
-      icon: Instagram,
-      href: "#",
-      color: "hover:text-blue-400",
-    },
+    // { name: "Twitter", icon: Twitter, href: "#", color: "hover:text-blue-400" },
+    // {
+    //   name: "LinkedIn",
+    //   icon: Linkedin,
+    //   href: "#",
+    //   color: "hover:text-blue-400",
+    // },
+    // {
+    //   name: "Instagram",
+    //   icon: Instagram,
+    //   href: "#",
+    //   color: "hover:text-blue-400",
+    // },
   ];
 
   const contactInfo = [
     {
       icon: Mail,
-      text: "info@nykfilmaritime.com",
-      href: "mailto:info@nykfilmaritime.com",
+      text: "neti@neti.com.ph",
+      href: "mailto:neti@neti.com.ph",
     },
     {
       icon: Phone,
-      text: "+63 (2) 8-XXX-XXXX",
-      href: "tel:+6328XXXXXXX",
+      text: "(049) 508-8600",
+      href: "tel:(049) 508-8600",
     },
-    {
-      icon: MapPin,
-      text: "Manila, Philippines",
-      href: "#",
-    },
+    // {
+    //   icon: MapPin,
+    //   text: "Knowledge Avenue, Carmeltown, Canlubang, Calamba City 4037, Laguna, Philippines",
+    //   href: "#",
+    // },
   ];
 
   const containerVariants = {
