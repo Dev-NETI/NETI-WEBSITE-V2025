@@ -4,41 +4,19 @@ import { useState, useEffect, useRef } from "react";
 import { motion, useTransform, useScroll } from "framer-motion";
 import Navigation from "../components/Navigation";
 import VideoHeaderSection from "../components/VideoHeaderSection";
-import {
-  ArrowRight,
-  Users,
-  Target,
-  Award,
-  TrendingUp,
-  Sparkles,
-  Zap,
-} from "lucide-react";
+import { Award } from "lucide-react";
 
 export default function HomePage() {
-  const [isVisible, setIsVisible] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const statsRef = useRef<HTMLDivElement>(null);
   // Scroll-based parallax values - only use global scroll to avoid ref hydration issues
   const { scrollY } = useScroll();
-
-  const statsY = useTransform(scrollY, [300, 900], [100, -100]);
-  const statsOpacity = useTransform(scrollY, [300, 600], [0, 1]);
 
   // Background parallax effects
   const backgroundY = useTransform(scrollY, [0, 1500], [0, -500]);
 
-  // Stats data
-  const stats = [
-    { icon: Users, number: "500+", label: "Happy Clients" },
-    { icon: Target, number: "1000+", label: "Projects Completed" },
-    { icon: Award, number: "50+", label: "Awards Won" },
-    { icon: TrendingUp, number: "95%", label: "Success Rate" },
-  ];
-
   useEffect(() => {
     setIsClient(true);
-    setIsVisible(true);
   }, []);
 
   // Don't render until client-side
@@ -180,7 +158,7 @@ export default function HomePage() {
                   Much of our success stems from our adherence to very high
                   training standards and compliance to a{" "}
                   <span className="text-blue-200 font-semibold">
-                    "No Training No Deployment Policy,"
+                    &ldquo;No Training No Deployment Policy,&rdquo;
                   </span>{" "}
                   which is realized through our in-house training center,
                   NYK-Fil Maritime E-Training Inc. (NETI).
@@ -229,7 +207,7 @@ export default function HomePage() {
                       </h4>
                       <p className="text-white/90 text-base leading-relaxed">
                         Developed scenarios for practical assessment and
-                        computerized grading of examinees' performance
+                        computerized grading of examinees&apos; performance
                       </p>
                     </div>
                   </div>
@@ -242,8 +220,8 @@ export default function HomePage() {
                       </h4>
                       <p className="text-white/90 text-base leading-relaxed">
                         Active merchant marine officers fresh from onboard
-                        assignments, mostly "home-grown" from our cadetship
-                        training programs
+                        assignments, mostly &ldquo;home-grown&rdquo; from our
+                        cadetship training programs
                       </p>
                     </div>
                   </div>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Navigation from "../../components/Navigation";
+import GoogleMap from "../../components/GoogleMap";
 import {
   ArrowRight,
   Mail,
@@ -13,6 +14,9 @@ import {
   MessageSquare,
   Users,
   Globe,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -23,11 +27,56 @@ export default function ContactPage() {
     company: "",
     message: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({ type: null, message: "" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log("Form submitted:", formData);
+    setIsSubmitting(true);
+    setSubmitStatus({ type: null, message: "" });
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setSubmitStatus({
+          type: "success",
+          message:
+            result.message ||
+            "Thank you for your message! We will get back to you soon.",
+        });
+        // Reset form on success
+        setFormData({
+          name: "",
+          email: "",
+          company: "",
+          message: "",
+        });
+      } else {
+        setSubmitStatus({
+          type: "error",
+          message: result.error || "Failed to send message. Please try again.",
+        });
+      }
+    } catch (error) {
+      setSubmitStatus({
+        type: "error",
+        message: "Network error. Please check your connection and try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (
@@ -99,8 +148,8 @@ export default function ContactPage() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-xl text-slate-600 mb-8 leading-relaxed"
             >
-              Ready to start your next project? Let's discuss how we can help
-              transform your business with innovative technology solutions.
+              Ready to start your next project? Let&apos;s discuss how we can
+              help transform your business with innovative technology solutions.
             </motion.p>
           </div>
         </motion.section>
@@ -192,42 +241,42 @@ export default function ContactPage() {
                   title: "Enroll Now!",
                   description: "Start your maritime training journey",
                   icon: Users,
-                  href: "#",
+                  href: "https://netiaccess.com",
                   color: "from-blue-600 to-indigo-600",
                 },
-                {
-                  title: "NETI Enrollment Site",
-                  description: "Official enrollment portal",
-                  icon: Globe,
-                  href: "#",
-                  color: "from-indigo-600 to-purple-600",
-                },
+                // {
+                //   title: "NETI Enrollment Site",
+                //   description: "Official enrollment portal",
+                //   icon: Globe,
+                //   href: "#",
+                //   color: "from-indigo-600 to-purple-600",
+                // },
                 {
                   title: "NYK-FIL Website",
                   description: "Visit our parent company",
                   icon: ArrowRight,
-                  href: "#",
+                  href: "https://www.nykfil.com.ph",
                   color: "from-purple-600 to-pink-600",
                 },
                 {
                   title: "NTMA Website",
                   description: "National Training Management Association",
                   icon: ArrowRight,
-                  href: "#",
+                  href: "https://ntma.edu.ph/home/index",
                   color: "from-pink-600 to-red-600",
                 },
-                {
-                  title: "NETI Webmail",
-                  description: "Access your email account",
-                  icon: Mail,
-                  href: "#",
-                  color: "from-red-600 to-orange-600",
-                },
+                // {
+                //   title: "NETI Webmail",
+                //   description: "Access your email account",
+                //   icon: Mail,
+                //   href: "#",
+                //   color: "from-red-600 to-orange-600",
+                // },
                 {
                   title: "TDG Human Resource Management, Inc.",
                   description: "HR management services",
                   icon: Users,
-                  href: "#",
+                  href: "https://tdg-smdmanpower.com/thrm.php",
                   color: "from-orange-600 to-yellow-600",
                 },
               ].map((link, index) => (
@@ -245,6 +294,8 @@ export default function ContactPage() {
                 >
                   <Link
                     href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="block bg-white rounded-3xl p-6 border border-slate-200 hover:border-blue-300 shadow-lg hover:shadow-xl transition-all duration-300 group h-full"
                   >
                     <div className="flex items-center gap-4">
@@ -340,7 +391,7 @@ export default function ContactPage() {
                     transition={{ duration: 0.5, delay: 0.5 }}
                     viewport={{ once: true }}
                   >
-                    <label className="block text-white/80 mb-2 font-medium">
+                    <label className="block text-slate-700 mb-2 font-medium">
                       Company
                     </label>
                     <input
@@ -348,7 +399,7 @@ export default function ContactPage() {
                       name="company"
                       value={formData.company}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-blue-900/30 border border-blue-500/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-300"
+                      className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
                       placeholder="Your company name"
                     />
                   </motion.div>
@@ -359,7 +410,7 @@ export default function ContactPage() {
                     transition={{ duration: 0.5, delay: 0.6 }}
                     viewport={{ once: true }}
                   >
-                    <label className="block text-white/80 mb-2 font-medium">
+                    <label className="block text-slate-700 mb-2 font-medium">
                       Message *
                     </label>
                     <textarea
@@ -368,26 +419,67 @@ export default function ContactPage() {
                       onChange={handleChange}
                       required
                       rows={6}
-                      className="w-full px-4 py-3 bg-blue-900/30 border border-blue-500/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-300 resize-none"
+                      className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 resize-none"
                       placeholder="Tell us about your project..."
                     />
                   </motion.div>
+
+                  {/* Success/Error Feedback */}
+                  {submitStatus.type && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className={`p-4 rounded-xl border ${
+                        submitStatus.type === "success"
+                          ? "bg-green-50 border-green-200 text-green-800"
+                          : "bg-red-50 border-red-200 text-red-800"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {submitStatus.type === "success" ? (
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-red-600" />
+                        )}
+                        <p className="font-medium">{submitStatus.message}</p>
+                      </div>
+                    </motion.div>
+                  )}
 
                   <motion.button
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.7 }}
                     viewport={{ once: true }}
-                    whileHover={{
-                      scale: 1.02,
-                      boxShadow: "0 10px 30px rgba(59, 130, 246, 0.3)",
-                    }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={
+                      !isSubmitting
+                        ? {
+                            scale: 1.02,
+                            boxShadow: "0 10px 30px rgba(59, 130, 246, 0.3)",
+                          }
+                        : {}
+                    }
+                    whileTap={!isSubmitting ? { scale: 0.98 } : {}}
                     type="submit"
-                    className="w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-indigo-800 transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl"
+                    disabled={isSubmitting}
+                    className={`w-full px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center gap-3 shadow-lg ${
+                      isSubmitting
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-gradient-to-r from-blue-600 to-indigo-700 text-white hover:from-blue-700 hover:to-indigo-800 hover:shadow-xl"
+                    }`}
                   >
-                    Send Message
-                    <Send className="w-5 h-5" />
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        Send Message
+                        <Send className="w-5 h-5" />
+                      </>
+                    )}
                   </motion.button>
                 </form>
               </motion.div>
@@ -440,7 +532,9 @@ export default function ContactPage() {
                           <h4 className="text-lg font-semibold text-slate-800 mb-2">
                             {feature.title}
                           </h4>
-                          <p className="text-slate-600">{feature.description}</p>
+                          <p className="text-slate-600">
+                            {feature.description}
+                          </p>
                         </div>
                       </motion.div>
                     ))}
@@ -467,47 +561,8 @@ export default function ContactPage() {
           </div>
         </motion.section>
 
-        {/* Map Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="py-20"
-        >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-4xl font-bold text-slate-800 mb-6">
-                Visit Our Office
-              </h2>
-              <p className="text-xl text-slate-600">
-                Located in the heart of San Francisco's tech district
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-              className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-3xl p-8 border border-slate-200 shadow-xl h-96 flex items-center justify-center"
-            >
-              <div className="text-center text-slate-500">
-                <MapPin className="w-16 h-16 mx-auto mb-4 text-blue-600" />
-                <p className="text-lg font-semibold text-slate-700">Interactive Map Coming Soon</p>
-                <p className="text-sm text-slate-600">
-                  123 Business Ave, Suite 100, San Francisco, CA 94105
-                </p>
-              </div>
-            </motion.div>
-          </div>
-        </motion.section>
+        {/* Google Map Section */}
+        <GoogleMap />
       </div>
     </div>
   );

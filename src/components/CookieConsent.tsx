@@ -34,12 +34,12 @@ export default function CookieConsent() {
       // Load saved settings
       try {
         const savedSettings = JSON.parse(cookieConsent);
-        setSettings({ ...settings, ...savedSettings });
+        setSettings(prevSettings => ({ ...prevSettings, ...savedSettings }));
       } catch (error) {
         console.error("Error parsing cookie settings:", error);
       }
     }
-  }, []);
+  }, []); // Empty dependency array - only run once on mount
 
   const acceptAll = () => {
     const allAccepted: CookieSettings = {
@@ -48,11 +48,11 @@ export default function CookieConsent() {
       marketing: true,
       preferences: true,
     };
-    
+
     localStorage.setItem("cookie-consent", JSON.stringify(allAccepted));
     setSettings(allAccepted);
     setShowBanner(false);
-    
+
     // Initialize analytics and other services here
     initializeServices(allAccepted);
   };
@@ -61,7 +61,7 @@ export default function CookieConsent() {
     localStorage.setItem("cookie-consent", JSON.stringify(settings));
     setShowBanner(false);
     setShowSettings(false);
-    
+
     // Initialize only selected services
     initializeServices(settings);
   };
@@ -73,11 +73,11 @@ export default function CookieConsent() {
       marketing: false,
       preferences: false,
     };
-    
+
     localStorage.setItem("cookie-consent", JSON.stringify(essentialOnly));
     setSettings(essentialOnly);
     setShowBanner(false);
-    
+
     // Initialize only essential services
     initializeServices(essentialOnly);
   };
@@ -88,13 +88,13 @@ export default function CookieConsent() {
       // Add Google Analytics or other analytics code here
       console.log("Analytics enabled");
     }
-    
+
     // Initialize marketing cookies
     if (cookieSettings.marketing) {
       // Add marketing pixels, tracking codes here
       console.log("Marketing cookies enabled");
     }
-    
+
     // Initialize preferences
     if (cookieSettings.preferences) {
       // Add preference-based customizations
@@ -104,10 +104,10 @@ export default function CookieConsent() {
 
   const toggleSetting = (key: keyof CookieSettings) => {
     if (key === "essential") return; // Cannot disable essential cookies
-    
-    setSettings(prev => ({
+
+    setSettings((prev) => ({
       ...prev,
-      [key]: !prev[key]
+      [key]: !prev[key],
     }));
   };
 
@@ -156,10 +156,12 @@ export default function CookieConsent() {
               {/* Content */}
               <div className="mb-6">
                 <p className="text-slate-600 text-sm leading-relaxed mb-4">
-                  We use cookies to enhance your browsing experience, provide personalized content, and analyze our traffic. 
-                  These help us improve our website performance and provide you with better services.
+                  We use cookies to enhance your browsing experience, provide
+                  personalized content, and analyze our traffic. These help us
+                  improve our website performance and provide you with better
+                  services.
                 </p>
-                
+
                 {!showSettings && (
                   <div className="flex items-center gap-2 text-xs text-slate-500">
                     <Check className="w-3 h-3 text-green-500" />
@@ -181,8 +183,12 @@ export default function CookieConsent() {
                       {/* Essential Cookies */}
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="text-sm font-semibold text-slate-800">Essential</h4>
-                          <p className="text-xs text-slate-500">Required for basic website functionality</p>
+                          <h4 className="text-sm font-semibold text-slate-800">
+                            Essential
+                          </h4>
+                          <p className="text-xs text-slate-500">
+                            Required for basic website functionality
+                          </p>
                         </div>
                         <div className="w-10 h-6 bg-green-500 rounded-full flex items-center justify-end px-1">
                           <div className="w-4 h-4 bg-white rounded-full shadow-sm" />
@@ -192,14 +198,18 @@ export default function CookieConsent() {
                       {/* Analytics Cookies */}
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="text-sm font-semibold text-slate-800">Analytics</h4>
-                          <p className="text-xs text-slate-500">Help us improve our website</p>
+                          <h4 className="text-sm font-semibold text-slate-800">
+                            Analytics
+                          </h4>
+                          <p className="text-xs text-slate-500">
+                            Help us improve our website
+                          </p>
                         </div>
                         <button
                           onClick={() => toggleSetting("analytics")}
                           className={`w-10 h-6 rounded-full flex items-center px-1 transition-colors ${
-                            settings.analytics 
-                              ? "bg-blue-500 justify-end" 
+                            settings.analytics
+                              ? "bg-blue-500 justify-end"
                               : "bg-slate-300 justify-start"
                           }`}
                         >
@@ -210,14 +220,18 @@ export default function CookieConsent() {
                       {/* Marketing Cookies */}
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="text-sm font-semibold text-slate-800">Marketing</h4>
-                          <p className="text-xs text-slate-500">Personalized ads and content</p>
+                          <h4 className="text-sm font-semibold text-slate-800">
+                            Marketing
+                          </h4>
+                          <p className="text-xs text-slate-500">
+                            Personalized ads and content
+                          </p>
                         </div>
                         <button
                           onClick={() => toggleSetting("marketing")}
                           className={`w-10 h-6 rounded-full flex items-center px-1 transition-colors ${
-                            settings.marketing 
-                              ? "bg-blue-500 justify-end" 
+                            settings.marketing
+                              ? "bg-blue-500 justify-end"
                               : "bg-slate-300 justify-start"
                           }`}
                         >
@@ -228,14 +242,18 @@ export default function CookieConsent() {
                       {/* Preferences Cookies */}
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="text-sm font-semibold text-slate-800">Preferences</h4>
-                          <p className="text-xs text-slate-500">Remember your settings and choices</p>
+                          <h4 className="text-sm font-semibold text-slate-800">
+                            Preferences
+                          </h4>
+                          <p className="text-xs text-slate-500">
+                            Remember your settings and choices
+                          </p>
                         </div>
                         <button
                           onClick={() => toggleSetting("preferences")}
                           className={`w-10 h-6 rounded-full flex items-center px-1 transition-colors ${
-                            settings.preferences 
-                              ? "bg-blue-500 justify-end" 
+                            settings.preferences
+                              ? "bg-blue-500 justify-end"
                               : "bg-slate-300 justify-start"
                           }`}
                         >

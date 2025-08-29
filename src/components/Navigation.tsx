@@ -37,7 +37,6 @@ export default function Navigation() {
     [0, 100],
     ["rgba(255, 255, 255, 1)", "rgba(255, 255, 255, 1)"]
   );
-  const borderOpacity = useTransform(scrollY, [0, 100], [0.2, 0.4]);
 
   // Prevent body scroll when mega menu is open
   useEffect(() => {
@@ -146,17 +145,17 @@ export default function Navigation() {
           icon: Phone,
           description: "Get in touch",
         },
-        {
-          href: "/contact#form",
-          label: "Send Message",
-          icon: Mail,
-          description: "Contact form",
-        },
+        // {
+        //   href: "/contact#form",
+        //   label: "Send Message",
+        //   icon: Mail,
+        //   description: "Contact form",
+        // },
         {
           href: "/contact#office",
           label: "Visit Office",
           icon: Building,
-          description: "Our locations",
+          description: "View our location on the map",
         },
       ],
     },
