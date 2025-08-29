@@ -1,0 +1,12 @@
+[
+  {
+    "id": "admin-1",
+    "email": "admin@neti.com.ph",
+    "password": "$2b$12$HEPdibKmacktvVcbp0zeheLFTbiWhUyj35iJ3aELpL5gesoD/59.S",
+    "name": "NETI Administrator",
+    "role": "admin",
+    "createdAt": "2025-08-29T07:20:51.811Z",
+    "updatedAt": "2025-08-29T07:20:52.311Z",
+    "lastLogin": "2025-08-29T07:20:52.311Z"
+  }
+]

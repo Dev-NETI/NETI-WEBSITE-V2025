@@ -5,14 +5,22 @@ import { MapPin, Navigation, Phone, Clock } from "lucide-react";
 
 export default function GoogleMap() {
   const address = "633H+PQJ, Knowledge Ave, Calamba, 4027 Laguna";
-  const googleMapsUrl = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dWnW2zPDxpQGY8&q=${encodeURIComponent(address)}`;
-  
+  const googleMapsUrl = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dWnW2zPDxpQGY8&q=${encodeURIComponent(
+    address
+  )}`;
+
   const openInGoogleMaps = () => {
-    window.open(`https://maps.google.com/?q=${encodeURIComponent(address)}`, '_blank');
+    window.open(
+      `https://maps.google.com/?q=${encodeURIComponent(address)}`,
+      "_blank"
+    );
   };
 
   const openDirections = () => {
-    window.open(`https://maps.google.com/maps/dir//${encodeURIComponent(address)}`, '_blank');
+    window.open(
+      `https://maps.google.com/maps/dir//${encodeURIComponent(address)}`,
+      "_blank"
+    );
   };
 
   return (
@@ -50,8 +58,10 @@ export default function GoogleMap() {
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-1">Address</h3>
                   <p className="text-slate-600 leading-relaxed">
-                    633H+PQJ, Knowledge Ave<br />
-                    Calamba, 4027 Laguna<br />
+                    633H+PQJ, Knowledge Ave
+                    <br />
+                    Calamba, 4027 Laguna
+                    <br />
                     Philippines
                   </p>
                 </div>
@@ -64,7 +74,8 @@ export default function GoogleMap() {
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-1">Contact</h3>
                   <p className="text-slate-600">
-                    Phone: +63 (49) 545-0000<br />
+                    Phone: +63 (49) 545-0000
+                    <br />
                     Email: info@neti.com.ph
                   </p>
                 </div>
@@ -75,10 +86,14 @@ export default function GoogleMap() {
                   <Clock className="w-5 h-5 text-orange-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-900 mb-1">Office Hours</h3>
+                  <h3 className="font-semibold text-slate-900 mb-1">
+                    Office Hours
+                  </h3>
                   <p className="text-slate-600">
-                    Monday - Friday: 8:00 AM - 5:00 PM<br />
-                    Saturday: 8:00 AM - 12:00 PM<br />
+                    Monday - Friday: 8:00 AM - 5:00 PM
+                    <br />
+                    Saturday: 8:00 AM - 12:00 PM
+                    <br />
                     Sunday: Closed
                   </p>
                 </div>
@@ -95,7 +110,7 @@ export default function GoogleMap() {
                 <Navigation className="w-5 h-5" />
                 Get Directions
               </motion.button>
-              
+
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -129,16 +144,18 @@ export default function GoogleMap() {
                   className="rounded-xl"
                   title="NETI Office Location"
                 />
-                
+
                 {/* Map overlay for better UX */}
                 <div className="absolute inset-0 bg-transparent hover:bg-blue-50/5 transition-colors rounded-xl pointer-events-none" />
               </div>
-              
+
               {/* Map footer */}
               <div className="flex items-center justify-between p-4 border-t border-slate-100">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                  <span className="text-sm font-medium text-slate-700">Live Location</span>
+                  <span className="text-sm font-medium text-slate-700">
+                    Live Location
+                  </span>
                 </div>
                 <button
                   onClick={openInGoogleMaps}
