@@ -119,8 +119,13 @@ export async function getAllEvents(): Promise<Event[]> {
     try {
       const data = await fs.readFile(EVENTS_FILE, "utf8");
       return JSON.parse(data);
-    } catch (error: any) {
-      if (error.code === "ENOENT") {
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === "ENOENT"
+      ) {
         // File doesn't exist, initialize it
         await initializeEventsDb();
         const data = await fs.readFile(EVENTS_FILE, "utf8");

@@ -40,7 +40,8 @@ const ADMINS_FILE = path.join(DB_PATH, "admins.json");
 const SESSIONS_FILE = path.join(DB_PATH, "sessions.json");
 
 // JWT secret - in production, this should be an environment variable
-const JWT_SECRET = process.env.JWT_SECRET || "neti-admin-secret-key-change-in-production";
+const JWT_SECRET =
+  process.env.JWT_SECRET || "neti-admin-secret-key-change-in-production";
 
 // Ensure database directory exists
 async function ensureDbPath() {
@@ -94,8 +95,13 @@ export async function getAllAdmins(): Promise<Admin[]> {
     try {
       const data = await fs.readFile(ADMINS_FILE, "utf8");
       return JSON.parse(data);
-    } catch (error: any) {
-      if (error.code === "ENOENT") {
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === "ENOENT"
+      ) {
         // File doesn't exist, initialize it
         await initializeAdminsDb();
         const data = await fs.readFile(ADMINS_FILE, "utf8");
@@ -113,7 +119,11 @@ export async function getAllAdmins(): Promise<Admin[]> {
 export async function getAdminByEmail(email: string): Promise<Admin | null> {
   try {
     const admins = await getAllAdmins();
-    return admins.find((admin) => admin.email.toLowerCase() === email.toLowerCase()) || null;
+    return (
+      admins.find(
+        (admin) => admin.email.toLowerCase() === email.toLowerCase()
+      ) || null
+    );
   } catch (error) {
     console.error("Error getting admin by email:", error);
     return null;
@@ -139,8 +149,13 @@ export async function getAllSessions(): Promise<Session[]> {
     try {
       const data = await fs.readFile(SESSIONS_FILE, "utf8");
       return JSON.parse(data);
-    } catch (error: any) {
-      if (error.code === "ENOENT") {
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === "ENOENT"
+      ) {
         // File doesn't exist, initialize it
         await initializeSessionsDb();
         const data = await fs.readFile(SESSIONS_FILE, "utf8");
@@ -183,11 +198,13 @@ export async function verifyToken(token: string): Promise<Admin | null> {
   try {
     // Verify JWT
     const decoded = jwt.verify(token, JWT_SECRET) as { adminId: string };
-    
+
     // Check if session exists and is valid
     const sessions = await getAllSessions();
-    const session = sessions.find(s => s.token === token && new Date(s.expiresAt) > new Date());
-    
+    const session = sessions.find(
+      (s) => s.token === token && new Date(s.expiresAt) > new Date()
+    );
+
     if (!session) {
       return null;
     }
@@ -205,13 +222,16 @@ export async function verifyToken(token: string): Promise<Admin | null> {
 export async function deleteSession(token: string): Promise<boolean> {
   try {
     const sessions = await getAllSessions();
-    const filteredSessions = sessions.filter(s => s.token !== token);
+    const filteredSessions = sessions.filter((s) => s.token !== token);
 
     if (filteredSessions.length === sessions.length) {
       return false; // Session not found
     }
 
-    await fs.writeFile(SESSIONS_FILE, JSON.stringify(filteredSessions, null, 2));
+    await fs.writeFile(
+      SESSIONS_FILE,
+      JSON.stringify(filteredSessions, null, 2)
+    );
     return true;
   } catch (error) {
     console.error("Error deleting session:", error);
@@ -224,7 +244,7 @@ export async function cleanExpiredSessions(): Promise<void> {
   try {
     const sessions = await getAllSessions();
     const now = new Date();
-    const validSessions = sessions.filter(s => new Date(s.expiresAt) > now);
+    const validSessions = sessions.filter((s) => new Date(s.expiresAt) > now);
 
     if (validSessions.length !== sessions.length) {
       await fs.writeFile(SESSIONS_FILE, JSON.stringify(validSessions, null, 2));
@@ -235,7 +255,9 @@ export async function cleanExpiredSessions(): Promise<void> {
 }
 
 // Authenticate admin
-export async function authenticateAdmin(credentials: LoginCredentials): Promise<AuthResponse> {
+export async function authenticateAdmin(
+  credentials: LoginCredentials
+): Promise<AuthResponse> {
   try {
     // Clean expired sessions first
     await cleanExpiredSessions();
@@ -265,7 +287,7 @@ export async function authenticateAdmin(credentials: LoginCredentials): Promise<
 
     // Update last login
     const admins = await getAllAdmins();
-    const adminIndex = admins.findIndex(a => a.id === admin.id);
+    const adminIndex = admins.findIndex((a) => a.id === admin.id);
     if (adminIndex !== -1) {
       admins[adminIndex].lastLogin = new Date().toISOString();
       admins[adminIndex].updatedAt = new Date().toISOString();
@@ -301,11 +323,15 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 // Create admin utility (for future use)
-export async function createAdmin(adminData: Omit<Admin, "id" | "createdAt" | "updatedAt" | "password"> & { password: string }): Promise<Admin> {
+export async function createAdmin(
+  adminData: Omit<Admin, "id" | "createdAt" | "updatedAt" | "password"> & {
+    password: string;
+  }
+): Promise<Admin> {
   try {
     const admins = await getAllAdmins();
     const hashedPassword = await hashPassword(adminData.password);
-    
+
     const newAdmin: Admin = {
       ...adminData,
       password: hashedPassword,

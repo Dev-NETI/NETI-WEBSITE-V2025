@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getEventById, updateEvent, deleteEvent } from '@/lib/database';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // GET /api/events/[id] - Get a specific event
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     if (!id) {
       return NextResponse.json(
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PUT /api/events/[id] - Update a specific event
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     if (!id) {
       return NextResponse.json(
@@ -69,6 +69,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const body = await request.json();
     
     // Remove fields that shouldn't be updated directly
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id: bodyId, createdAt, ...updateData } = body;
 
     const updatedEvent = await updateEvent(id, updateData);
@@ -104,7 +105,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/events/[id] - Delete a specific event
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     if (!id) {
       return NextResponse.json(

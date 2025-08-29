@@ -15,7 +15,6 @@ import {
   Home,
   User,
   Phone,
-  Mail,
   ChevronDown,
   FileText,
   Calendar,

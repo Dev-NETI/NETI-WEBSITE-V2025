@@ -9,7 +9,6 @@ import {
   ChevronDown,
   Calendar,
   Home,
-  Settings,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
@@ -121,7 +120,9 @@ export default function AdminHeader() {
                             {admin?.email}
                           </p>
                           <p className="text-xs text-blue-600 font-medium mt-1">
-                            {admin?.role === "admin" ? "Administrator" : admin?.role}
+                            {admin?.role === "admin"
+                              ? "Administrator"
+                              : admin?.role}
                           </p>
                         </div>
                       </div>
