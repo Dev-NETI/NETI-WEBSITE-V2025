@@ -4,7 +4,7 @@ import { verifyToken } from "@/lib/auth";
 export async function GET(request: NextRequest) {
   try {
     // Get token from cookie
-    const token = request.cookies.get("auth-token")?.value;
+    const token = request.cookies.get("admin-token")?.value;
 
     if (!token) {
       return NextResponse.json(
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       );
 
       // Clear the invalid cookie
-      response.cookies.set("auth-token", "", {
+      response.cookies.set("admin-token", "", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",

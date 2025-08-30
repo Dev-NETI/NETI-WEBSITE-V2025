@@ -4,7 +4,7 @@ import { deleteSession } from "@/lib/auth";
 export async function POST(request: NextRequest) {
   try {
     // Get token from cookie
-    const token = request.cookies.get("auth-token")?.value;
+    const token = request.cookies.get("admin-token")?.value;
 
     if (token) {
       // Delete session from database
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Clear the auth cookie
-    response.cookies.set("auth-token", "", {
+    response.cookies.set("admin-token", "", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",

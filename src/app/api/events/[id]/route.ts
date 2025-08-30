@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getEventById, updateEvent, deleteEvent } from '@/lib/database';
+import { getEventById, updateEvent, deleteEvent } from '@/lib/events-db';
 
 interface RouteParams {
   params: Promise<{
@@ -22,13 +22,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const event = await getEventById(id);
+    const result = await getEventById(id);
 
-    if (!event) {
+    if (!result.success) {
       return NextResponse.json(
         { 
           success: false, 
-          error: 'Event not found' 
+          error: result.error || 'Event not found' 
         },
         { status: 404 }
       );
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({
       success: true,
-      data: event,
+      data: result.data,
     });
 
   } catch (error) {
@@ -72,21 +72,21 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id: bodyId, createdAt, ...updateData } = body;
 
-    const updatedEvent = await updateEvent(id, updateData);
+    const result = await updateEvent(id, updateData);
 
-    if (!updatedEvent) {
+    if (!result.success) {
       return NextResponse.json(
         { 
           success: false, 
-          error: 'Event not found' 
+          error: result.error || 'Event not found' 
         },
-        { status: 404 }
+        { status: result.error === 'Event not found' ? 404 : 400 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      data: updatedEvent,
+      data: result.data,
       message: 'Event updated successfully',
     });
 
@@ -117,13 +117,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const deleted = await deleteEvent(id);
+    const result = await deleteEvent(id);
 
-    if (!deleted) {
+    if (!result.success) {
       return NextResponse.json(
         { 
           success: false, 
-          error: 'Event not found' 
+          error: result.error || 'Event not found' 
         },
         { status: 404 }
       );

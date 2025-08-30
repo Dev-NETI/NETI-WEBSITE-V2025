@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { testConnection } from '@/lib/mysql';
 
 // GET /api/test-db - Test database connection
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     console.log('Testing MySQL database connection...');
     

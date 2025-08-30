@@ -5,7 +5,6 @@ import {
   Calendar,
   MapPin,
   Users,
-  Clock,
   Star,
   Sparkles,
 } from "lucide-react";
@@ -253,7 +252,7 @@ export default function EventsSection() {
                 No Upcoming Events
               </h3>
               <p className="text-lg text-slate-600 mb-2">
-                We're currently planning exciting new maritime training events.
+                We&apos;re currently planning exciting new maritime training events.
               </p>
               <p className="text-slate-500">
                 Check back soon for updates on workshops, conferences, and
@@ -280,7 +279,7 @@ export default function EventsSection() {
                 events.map((e) => ({ title: e.title, date: e.date, id: e.id }))
               );
               return events.slice(0, 1);
-            })().map((event, index) => {
+            })().map((event) => {
               const isSpecialEvent = event.title
                 .toLowerCase()
                 .includes("anniversary");
@@ -464,7 +463,7 @@ export default function EventsSection() {
 
             {/* Secondary Events - Smaller cards on the right */}
             <div className="lg:col-span-1 space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0 lg:flex lg:flex-col lg:space-y-6 lg:h-full">
-              {events.slice(1, 4).map((event, index) => {
+              {events.slice(1, 4).map((event) => {
                 const isSpecialEvent = event.title
                   .toLowerCase()
                   .includes("anniversary");

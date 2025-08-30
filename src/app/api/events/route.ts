@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllEvents, createEvent, Event } from '@/lib/database';
+import { getAllEvents, createEvent } from '@/lib/events-db';
+import { initializeDatabase } from '@/lib/db';
+import type { Event } from '@/lib/events-db';
 
 // GET /api/events - Get all events or filtered events
 export async function GET(request: NextRequest) {
@@ -8,7 +10,11 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const limit = searchParams.get('limit');
 
-    let events = await getAllEvents();
+    // Initialize database if needed
+    await initializeDatabase();
+    
+    const result = await getAllEvents();
+    let events = result.success ? result.data || [] : [];
 
     // Filter by status if provided
     if (status) {
@@ -77,11 +83,21 @@ export async function POST(request: NextRequest) {
       currentRegistrations: body.currentRegistrations || 0,
     };
 
-    const newEvent = await createEvent(eventData);
+    const result = await createEvent(eventData);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: result.error || 'Failed to create event' 
+        },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      data: newEvent,
+      data: result.data,
       message: 'Event created successfully',
     }, { status: 201 });
 
