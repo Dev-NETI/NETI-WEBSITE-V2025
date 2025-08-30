@@ -1,0 +1,25 @@
+[
+  {
+    "id": "admin-1",
+    "email": "admin@neti.com.ph",
+    "name": "NETI Super Administrator",
+    "password": "$2b$12$HEPdibKmacktvVcbp0zeheLFTbiWhUyj35iJ3aELpL5gesoD/59.S",
+    "role": "super_admin",
+    "isActive": true,
+    "createdAt": "2025-08-29T07:20:51.811Z",
+    "updatedAt": "2025-08-29T07:20:52.311Z",
+    "lastLogin": "2025-08-30T15:36:51.330Z",
+    "createdBy": null
+  },
+  {
+    "email": "sherwin.roxas@neti.com.ph",
+    "name": "Sherwin Roxas",
+    "password": "$2b$12$CKqZ9XTz0.Gphca9prn22uUhqhVZHDvggs6hBvMUzFcUzQCGpwogC",
+    "role": "super_admin",
+    "isActive": true,
+    "createdAt": "2025-08-30T15:37:39.506Z",
+    "updatedAt": "2025-08-30T15:37:39.506Z",
+    "id": "1756568259506",
+    "lastLogin": "2025-08-30T15:41:08.939Z"
+  }
+]

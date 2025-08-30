@@ -1,0 +1,452 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import {
+  Users,
+  Calendar,
+  Newspaper,
+  Settings,
+  TrendingUp,
+  Activity,
+  Clock,
+  UserCheck,
+  ArrowRight,
+  Bell,
+  LogOut,
+} from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import Image from "next/image";
+
+interface DashboardStats {
+  totalUsers: number;
+  activeUsers: number;
+  totalEvents: number;
+  upcomingEvents: number;
+  recentLogins: number;
+  systemHealth: "good" | "warning" | "error";
+}
+
+interface QuickAction {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  href: string;
+  color: string;
+  permission?: string;
+}
+
+export default function AdminDashboard() {
+  const router = useRouter();
+  const { admin, logout } = useAuth();
+  const {
+    userRole,
+    permissions,
+  } = usePermissions();
+
+  const [stats, setStats] = useState<DashboardStats>({
+    totalUsers: 0,
+    activeUsers: 0,
+    totalEvents: 0,
+    upcomingEvents: 0,
+    recentLogins: 0,
+    systemHealth: "good",
+  });
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    // Update time every second
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    // Simulate fetching dashboard stats
+    const fetchStats = async () => {
+      // In a real app, these would be API calls
+      setStats({
+        totalUsers: 24,
+        activeUsers: 18,
+        totalEvents: 12,
+        upcomingEvents: 8,
+        recentLogins: 5,
+        systemHealth: "good",
+      });
+    };
+
+    fetchStats();
+  }, []);
+
+  const quickActions: QuickAction[] = [
+    {
+      title: "Manage Users",
+      description: "Create, edit, and manage system users",
+      icon: <Users className="w-6 h-6" />,
+      href: "/admin/users",
+      color: "from-blue-500 to-blue-600",
+      permission: "users",
+    },
+    {
+      title: "Manage Events",
+      description: "Create and manage training events",
+      icon: <Calendar className="w-6 h-6" />,
+      href: "/admin/events",
+      color: "from-green-500 to-green-600",
+      permission: "events",
+    },
+    {
+      title: "Manage News",
+      description: "Create and manage news articles",
+      icon: <Newspaper className="w-6 h-6" />,
+      href: "/admin/news",
+      color: "from-purple-500 to-purple-600",
+      permission: "news",
+    },
+    {
+      title: "System Settings",
+      description: "Configure system preferences",
+      icon: <Settings className="w-6 h-6" />,
+      href: "/admin/settings",
+      color: "from-orange-500 to-orange-600",
+      permission: "settings",
+    },
+  ];
+
+  const filteredActions = quickActions.filter(
+    (action) => !action.permission || permissions.includes(action.permission)
+  );
+
+  const handleLogout = async () => {
+    await logout();
+  };
+
+  if (!admin) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        {/* Header */}
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <div className="flex items-center gap-4">
+                <Image
+                  src="/assets/images/NETI.svg"
+                  alt="NETI Logo"
+                  width={40}
+                  height={40}
+                  className="w-10 h-10"
+                />
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">
+                    NETI Admin Panel
+                  </h1>
+                  <p className="text-sm text-gray-600">
+                    NYK-Fil Maritime E-Training, Inc.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">
+                    {admin.name}
+                  </p>
+                  <p className="text-xs text-gray-500 capitalize">
+                    {userRole?.replace("_", " ")}
+                  </p>
+                </div>
+
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Welcome Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-16 translate-x-16" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-16 -translate-x-16" />
+
+              <div className="relative z-10">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <h2 className="text-3xl font-bold mb-2">
+                    Welcome back, {admin.name}!
+                  </h2>
+                  <p className="text-blue-100 mb-4">
+                    {currentTime.toLocaleDateString("en-US", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}{" "}
+                    •{" "}
+                    {currentTime.toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex items-center gap-4"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    <span className="text-sm text-blue-100">
+                      System Status: Online
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-blue-200" />
+                    <span className="text-sm text-blue-100">
+                      Last login: Today
+                    </span>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Stats Grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+          >
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-100 rounded-xl">
+                  <Users className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {stats.totalUsers}
+                  </p>
+                  <p className="text-sm text-gray-600">Total Users</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-green-100 rounded-xl">
+                  <UserCheck className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {stats.activeUsers}
+                  </p>
+                  <p className="text-sm text-gray-600">Active Users</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-purple-100 rounded-xl">
+                  <Calendar className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {stats.totalEvents}
+                  </p>
+                  <p className="text-sm text-gray-600">Total Events</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-orange-100 rounded-xl">
+                  <TrendingUp className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {stats.upcomingEvents}
+                  </p>
+                  <p className="text-sm text-gray-600">Upcoming Events</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Quick Actions */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mb-8"
+          >
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">
+              Quick Actions
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {filteredActions.map((action, index) => (
+                <motion.div
+                  key={action.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * index }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <button
+                    onClick={() => router.push(action.href)}
+                    className="w-full bg-white rounded-xl shadow-sm border p-6 text-left hover:shadow-lg transition-all duration-300 group"
+                  >
+                    <div
+                      className={`inline-flex p-3 bg-gradient-to-r ${action.color} rounded-xl text-white mb-4`}
+                    >
+                      {action.icon}
+                    </div>
+                    <h4 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                      {action.title}
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                      {action.description}
+                    </p>
+                    <div className="flex items-center gap-2 text-blue-600 text-sm font-medium">
+                      <span>Access now</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </button>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Recent Activity */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+          >
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Activity className="w-5 h-5 text-blue-600" />
+                Recent Activity
+              </h3>
+              <div className="space-y-4">
+                {[
+                  {
+                    action: "User created",
+                    user: "john.doe@example.com",
+                    time: "2 hours ago",
+                  },
+                  {
+                    action: "Event updated",
+                    user: "Maritime Safety Training",
+                    time: "4 hours ago",
+                  },
+                  {
+                    action: "News published",
+                    user: "New Training Programs Available",
+                    time: "1 day ago",
+                  },
+                ].map((activity, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">
+                        {activity.action}
+                      </p>
+                      <p className="text-xs text-gray-600">{activity.user}</p>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {activity.time}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Bell className="w-5 h-5 text-orange-600" />
+                System Notifications
+              </h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2" />
+                    <div>
+                      <p className="text-sm font-medium text-green-900">
+                        System Update Complete
+                      </p>
+                      <p className="text-xs text-green-700">
+                        All modules are running smoothly
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-900">
+                        New Users Registered
+                      </p>
+                      <p className="text-xs text-blue-700">
+                        5 new users registered today
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full mt-2" />
+                    <div>
+                      <p className="text-sm font-medium text-purple-900">
+                        Upcoming Events
+                      </p>
+                      <p className="text-xs text-purple-700">
+                        8 events scheduled for next week
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </ProtectedRoute>
+  );
+}
