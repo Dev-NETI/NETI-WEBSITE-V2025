@@ -5,6 +5,7 @@ import { motion, useTransform, useScroll } from "framer-motion";
 import Navigation from "../components/Navigation";
 import VideoHeaderSection from "../components/VideoHeaderSection";
 import { Award } from "lucide-react";
+import EventsSection from "@/components/EventsSection";
 
 export default function HomePage() {
   const [isClient, setIsClient] = useState(false);
@@ -87,6 +88,7 @@ export default function HomePage() {
       <div className="pt-20">
         {/* Video Header Section with Articles */}
         <VideoHeaderSection />
+        <EventsSection />
 
         {/* NETI Training Excellence Section */}
         <motion.section
