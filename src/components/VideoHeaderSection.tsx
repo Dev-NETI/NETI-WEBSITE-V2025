@@ -1,15 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 export default function VideoHeaderSection() {
-  const [isClient, setIsClient] = useState(false);
-
-  // Client-side check
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   return (
     <div className="relative bg-white">

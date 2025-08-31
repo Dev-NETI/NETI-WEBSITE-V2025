@@ -14,7 +14,6 @@ import {
   ChevronRight,
   Award,
   Users,
-  Clock,
   CheckCircle,
 } from "lucide-react";
 
@@ -177,10 +176,6 @@ export default function WhatWeOffer() {
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut",
-      },
     },
   };
 
@@ -189,17 +184,10 @@ export default function WhatWeOffer() {
     visible: {
       opacity: 1,
       scale: 1,
-      transition: {
-        duration: 0.3,
-        ease: "easeOut",
-      },
     },
     exit: {
       opacity: 0,
       scale: 0.8,
-      transition: {
-        duration: 0.2,
-      },
     },
   };
 
@@ -273,7 +261,7 @@ export default function WhatWeOffer() {
                   training courses that comply with international maritime
                   regulations and industry best practices. Our programs are
                   designed to equip maritime professionals with the knowledge
-                  and skills needed to excel in today's competitive maritime
+                  and skills needed to excel in today&apos;s competitive maritime
                   industry.
                 </p>
                 <p className="text-lg text-gray-600 leading-relaxed">
@@ -347,6 +335,7 @@ export default function WhatWeOffer() {
                   <motion.div
                     key={service.id}
                     variants={cardVariants}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
                     whileHover={{ y: -6, scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedService(service)}
@@ -409,6 +398,7 @@ export default function WhatWeOffer() {
               initial="hidden"
               animate="visible"
               exit="exit"
+              transition={{ duration: 0.3, ease: "easeOut" }}
               onClick={(e) => e.stopPropagation()}
               className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
             >
@@ -459,7 +449,7 @@ export default function WhatWeOffer() {
                 <div className="mb-8">
                   <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <Users className="w-5 h-5 text-blue-600" />
-                    What You'll Learn
+                    What You&apos;ll Learn
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {selectedService.features.map((feature, index) => (

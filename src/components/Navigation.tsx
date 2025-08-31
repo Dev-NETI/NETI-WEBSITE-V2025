@@ -14,7 +14,6 @@ import {
   ArrowRight,
   Home,
   User,
-  Phone,
   ChevronDown,
   FileText,
   Calendar,

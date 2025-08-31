@@ -10,10 +10,6 @@ import {
   Maximize,
   RotateCcw,
   X,
-  PlayCircle,
-  Award,
-  Users,
-  Globe,
 } from "lucide-react";
 
 interface CompanyProfileVideoProps {
@@ -26,8 +22,6 @@ interface CompanyProfileVideoProps {
 export default function CompanyProfileVideo({
   videoSrc = "https://netiaccess.com/assets/videos/company_profile.mp4",
   posterImage = "/assets/images/nttc.jpg",
-  title = "NYK-Fil Maritime E-Training, Inc.",
-  description = "Discover our journey in maritime excellence and professional training solutions",
 }: CompanyProfileVideoProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -39,7 +33,7 @@ export default function CompanyProfileVideo({
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Generate random values once and store them
   const randomValues = useRef({
@@ -187,11 +181,6 @@ export default function CompanyProfileVideo({
     visible: { opacity: 1, y: 0 },
   };
 
-  const companyStats = [
-    { icon: Award, number: "25+", label: "Years of Excellence" },
-    { icon: Users, number: "10,000+", label: "Trained Professionals" },
-    { icon: Globe, number: "50+", label: "Countries Served" },
-  ];
 
   return (
     <section className="py-24 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 relative overflow-hidden">
@@ -340,7 +329,7 @@ export default function CompanyProfileVideo({
             variants={itemVariants}
             className="text-xl text-white/80 max-w-3xl mx-auto leading-relaxed"
           >
-            Watch our journey of maritime excellence and discover how we're
+            Watch our journey of maritime excellence and discover how we&apos;re
             shaping the future of maritime education
           </motion.p>
         </motion.div>
