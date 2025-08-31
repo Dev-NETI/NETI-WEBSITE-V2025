@@ -241,7 +241,7 @@ export async function createEvent(
     const result = await executeQuery(query, values);
     
     // Get the created event
-    const insertId = (result as any).insertId;
+    const insertId = (result as unknown as { insertId: number }).insertId;
     const createdEvent = await getEventById(insertId.toString());
     
     if (!createdEvent) {
@@ -267,7 +267,7 @@ export async function updateEvent(
     
     const now = new Date();
     const updateFields: string[] = [];
-    const values: any[] = [];
+    const values: unknown[] = [];
     
     // Build dynamic update query
     Object.entries(eventData).forEach(([key, value]) => {
@@ -319,7 +319,7 @@ export async function deleteEvent(id: string): Promise<boolean> {
     const result = await executeQuery(query, [id]);
     
     // Check if any rows were affected (event existed and was deleted)
-    const affectedRows = (result as any).affectedRows;
+    const affectedRows = (result as unknown as { affectedRows: number }).affectedRows;
     
     if (affectedRows === 0) {
       console.log(`No event found with ID: ${id}`);

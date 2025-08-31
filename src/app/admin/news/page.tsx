@@ -188,7 +188,7 @@ export default function AdminNewsPage() {
 
   if (!canManageNews) {
     return (
-      <ProtectedRoute requiredPermissions={['news_manager']}>
+      <ProtectedRoute >
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -201,7 +201,7 @@ export default function AdminNewsPage() {
   }
 
   return (
-    <ProtectedRoute requiredPermissions={['news_manager']}>
+    <ProtectedRoute >
       <div className="min-h-screen bg-gray-50">
         <AdminHeader />
         

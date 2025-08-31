@@ -22,7 +22,7 @@ interface NewsSliderProps {
 export default function NewsSlider({ news }: NewsSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const autoPlayRef = React.useRef<NodeJS.Timeout>();
+  const autoPlayRef = React.useRef<NodeJS.Timeout | null>(null);
 
   // Calculate how many items to show and step by
   const itemsPerView = 3; // Show 3 tiles at once
@@ -95,7 +95,6 @@ export default function NewsSlider({ news }: NewsSliderProps) {
       scale: 1,
       transition: {
         duration: 0.8,
-        ease: [0.25, 0.46, 0.45, 0.94],
       },
     },
     hover: {
@@ -103,20 +102,18 @@ export default function NewsSlider({ news }: NewsSliderProps) {
       scale: 1.03,
       transition: {
         duration: 0.3,
-        ease: "easeOut",
       },
     },
-  };
+  } as const;
 
   const imageVariants = {
     hover: {
       scale: 1.1,
       transition: {
         duration: 0.6,
-        ease: "easeOut",
       },
     },
-  };
+  } as const;
 
   return (
     <section className="py-24 bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden">

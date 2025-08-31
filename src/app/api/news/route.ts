@@ -14,9 +14,9 @@ export async function GET(request: NextRequest) {
 
     const result = await getAllNews(limitNumber);
 
-    if (!result.success) {
+    if (!result.success || !result.data) {
       return NextResponse.json(
-        { success: false, error: result.error },
+        { success: false, error: result.error || 'Failed to fetch news articles' },
         { status: 500 }
       );
     }
@@ -25,8 +25,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: result.data,
-      count: result.count
+      data: result.data
     });
   } catch (error) {
     console.error('News API Error:', error);
@@ -49,7 +48,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const decoded = verifyToken(token);
+    const decoded = await verifyToken(token);
     if (!decoded) {
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
@@ -96,9 +95,9 @@ export async function POST(request: NextRequest) {
 
     const result = await createNews(newsData);
 
-    if (!result.success) {
+    if (!result.success || !result.data) {
       return NextResponse.json(
-        { success: false, error: result.error },
+        { success: false, error: result.error || 'Failed to create news article' },
         { status: 500 }
       );
     }

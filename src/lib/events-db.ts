@@ -1,5 +1,5 @@
-import { DatabaseResult } from './db';
-import { eventsDB, EventDocument } from './document-db';
+import { DatabaseResult } from "./db";
+import { eventsDB, EventDocument } from "./document-db";
 
 export interface Event {
   id: string;
@@ -22,12 +22,12 @@ export interface Event {
 export async function getAllEvents(): Promise<DatabaseResult<Event[]>> {
   try {
     const result = await eventsDB.readAll();
-    if (!result.success) {
+    if (!result.success || !result.data) {
       return result;
     }
 
     // Convert EventDocument to Event format (fixing property names)
-    const events: Event[] = result.data.map(event => ({
+    const events: Event[] = result.data.map((event) => ({
       id: event.id,
       title: event.title,
       date: event.date,
@@ -41,15 +41,15 @@ export async function getAllEvents(): Promise<DatabaseResult<Event[]>> {
       max_capacity: event.max_capacity,
       current_registrations: event.current_registrations,
       created_at: event.created_at,
-      updated_at: event.updated_at
+      updated_at: event.updated_at,
     }));
 
     return { success: true, data: events };
   } catch (error) {
-    console.error('Error getting all events:', error);
+    console.error("Error getting all events:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to get events'
+      error: error instanceof Error ? error.message : "Failed to get events",
     };
   }
 }
@@ -58,7 +58,7 @@ export async function getAllEvents(): Promise<DatabaseResult<Event[]>> {
 export async function getEventById(id: string): Promise<DatabaseResult<Event>> {
   try {
     const result = await eventsDB.findById(id);
-    if (!result.success) {
+    if (!result.success || !result.data) {
       return result;
     }
 
@@ -77,15 +77,15 @@ export async function getEventById(id: string): Promise<DatabaseResult<Event>> {
       max_capacity: result.data.max_capacity,
       current_registrations: result.data.current_registrations,
       created_at: result.data.created_at,
-      updated_at: result.data.updated_at
+      updated_at: result.data.updated_at,
     };
 
     return { success: true, data: event };
   } catch (error) {
-    console.error('Error getting event by ID:', error);
+    console.error("Error getting event by ID:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to get event'
+      error: error instanceof Error ? error.message : "Failed to get event",
     };
   }
 }
@@ -97,7 +97,7 @@ export async function createEvent(
   try {
     const now = new Date().toISOString();
 
-    const newEvent: Omit<EventDocument, 'id'> = {
+    const newEvent: Omit<EventDocument, "id"> = {
       title: eventData.title,
       date: eventData.date,
       time: eventData.time,
@@ -110,11 +110,11 @@ export async function createEvent(
       max_capacity: eventData.max_capacity || 100,
       current_registrations: eventData.current_registrations || 0,
       created_at: now,
-      updated_at: now
+      updated_at: now,
     };
 
     const result = await eventsDB.create(newEvent);
-    if (!result.success) {
+    if (!result.success || !result.data) {
       return result;
     }
 
@@ -133,15 +133,15 @@ export async function createEvent(
       max_capacity: result.data.max_capacity,
       current_registrations: result.data.current_registrations,
       created_at: result.data.created_at,
-      updated_at: result.data.updated_at
+      updated_at: result.data.updated_at,
     };
 
     return { success: true, data: event };
   } catch (error) {
-    console.error('Error creating event:', error);
+    console.error("Error creating event:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to create event'
+      error: error instanceof Error ? error.message : "Failed to create event",
     };
   }
 }
@@ -153,23 +153,27 @@ export async function updateEvent(
 ): Promise<DatabaseResult<Event>> {
   try {
     const updates: Partial<EventDocument> = {
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     if (eventData.title !== undefined) updates.title = eventData.title;
     if (eventData.date !== undefined) updates.date = eventData.date;
     if (eventData.time !== undefined) updates.time = eventData.time;
     if (eventData.location !== undefined) updates.location = eventData.location;
-    if (eventData.description !== undefined) updates.description = eventData.description;
+    if (eventData.description !== undefined)
+      updates.description = eventData.description;
     if (eventData.category !== undefined) updates.category = eventData.category;
-    if (eventData.attendees !== undefined) updates.attendees = eventData.attendees;
+    if (eventData.attendees !== undefined)
+      updates.attendees = eventData.attendees;
     if (eventData.image !== undefined) updates.image = eventData.image;
     if (eventData.status !== undefined) updates.status = eventData.status;
-    if (eventData.max_capacity !== undefined) updates.max_capacity = eventData.max_capacity;
-    if (eventData.current_registrations !== undefined) updates.current_registrations = eventData.current_registrations;
+    if (eventData.max_capacity !== undefined)
+      updates.max_capacity = eventData.max_capacity;
+    if (eventData.current_registrations !== undefined)
+      updates.current_registrations = eventData.current_registrations;
 
     const result = await eventsDB.update(id, updates);
-    if (!result.success) {
+    if (!result.success || !result.data) {
       return result;
     }
 
@@ -188,43 +192,47 @@ export async function updateEvent(
       max_capacity: result.data.max_capacity,
       current_registrations: result.data.current_registrations,
       created_at: result.data.created_at,
-      updated_at: result.data.updated_at
+      updated_at: result.data.updated_at,
     };
 
     return { success: true, data: event };
   } catch (error) {
-    console.error('Error updating event:', error);
+    console.error("Error updating event:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to update event'
+      error: error instanceof Error ? error.message : "Failed to update event",
     };
   }
 }
 
 // Delete event - now uses document database
-export async function deleteEvent(id: string): Promise<DatabaseResult<boolean>> {
+export async function deleteEvent(
+  id: string
+): Promise<DatabaseResult<boolean>> {
   try {
     const result = await eventsDB.delete(id);
     return result;
   } catch (error) {
-    console.error('Error deleting event:', error);
+    console.error("Error deleting event:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to delete event'
+      error: error instanceof Error ? error.message : "Failed to delete event",
     };
   }
 }
 
 // Get events by status - now uses document database
-export async function getEventsByStatus(status: Event["status"]): Promise<DatabaseResult<Event[]>> {
+export async function getEventsByStatus(
+  status: Event["status"]
+): Promise<DatabaseResult<Event[]>> {
   try {
-    const result = await eventsDB.findWhere(event => event.status === status);
-    if (!result.success) {
+    const result = await eventsDB.findWhere((event) => event.status === status);
+    if (!result.success || !result.data) {
       return result;
     }
 
     // Convert EventDocument to Event format
-    const events: Event[] = result.data.map(event => ({
+    const events: Event[] = result.data.map((event) => ({
       id: event.id,
       title: event.title,
       date: event.date,
@@ -238,30 +246,35 @@ export async function getEventsByStatus(status: Event["status"]): Promise<Databa
       max_capacity: event.max_capacity,
       current_registrations: event.current_registrations,
       created_at: event.created_at,
-      updated_at: event.updated_at
+      updated_at: event.updated_at,
     }));
 
     return { success: true, data: events };
   } catch (error) {
-    console.error('Error getting events by status:', error);
+    console.error("Error getting events by status:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to get events by status'
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to get events by status",
     };
   }
 }
 
 // Get upcoming events - now uses document database
-export async function getUpcomingEvents(limit?: number): Promise<DatabaseResult<Event[]>> {
+export async function getUpcomingEvents(
+  limit?: number
+): Promise<DatabaseResult<Event[]>> {
   try {
-    const today = new Date().toISOString().split('T')[0];
-    const result = await eventsDB.findWhere(event => event.date >= today);
-    if (!result.success) {
+    const today = new Date().toISOString().split("T")[0];
+    const result = await eventsDB.findWhere((event) => event.date >= today);
+    if (!result.success || !result.data) {
       return result;
     }
 
     // Convert EventDocument to Event format
-    let events: Event[] = result.data.map(event => ({
+    let events: Event[] = result.data.map((event) => ({
       id: event.id,
       title: event.title,
       date: event.date,
@@ -275,7 +288,7 @@ export async function getUpcomingEvents(limit?: number): Promise<DatabaseResult<
       max_capacity: event.max_capacity,
       current_registrations: event.current_registrations,
       created_at: event.created_at,
-      updated_at: event.updated_at
+      updated_at: event.updated_at,
     }));
 
     // Sort by date
@@ -288,10 +301,13 @@ export async function getUpcomingEvents(limit?: number): Promise<DatabaseResult<
 
     return { success: true, data: events };
   } catch (error) {
-    console.error('Error getting upcoming events:', error);
+    console.error("Error getting upcoming events:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to get upcoming events'
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to get upcoming events",
     };
   }
 }
