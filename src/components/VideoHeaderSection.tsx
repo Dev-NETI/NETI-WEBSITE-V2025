@@ -2,67 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { NewsArticle } from "@/lib/news-db";
-import NewsSlider from "./NewsSlider";
-
-interface NewsApiResponse {
-  success: boolean;
-  data: NewsArticle[];
-  count: number;
-}
 
 export default function VideoHeaderSection() {
-  const [news, setNews] = useState<NewsArticle[]>([]);
-  const [newsLoading, setNewsLoading] = useState(true);
   const [isClient, setIsClient] = useState(false);
 
   // Client-side check
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-
-  // Fetch news from API
-  useEffect(() => {
-    if (!isClient) return;
-
-    const fetchNews = async () => {
-      try {
-        setNewsLoading(true);
-        console.log("VideoHeaderSection: Starting to fetch news...");
-        const response = await fetch("/api/news?limit=6");
-        const result: NewsApiResponse = await response.json();
-
-        console.log(
-          "VideoHeaderSection: News API response:",
-          response.status,
-          response.ok
-        );
-        console.log("VideoHeaderSection: News API result:", result);
-
-        if (result.success) {
-          console.log("VideoHeaderSection: Fetched news:", result.data);
-          console.log(
-            "VideoHeaderSection: News array length:",
-            result.data?.length || 0
-          );
-          console.log("VideoHeaderSection: Setting news state...");
-          setNews(result.data);
-        } else {
-          console.log("VideoHeaderSection: News API error:", result);
-        }
-      } catch (error) {
-        console.error("VideoHeaderSection: Error fetching news:", error);
-      } finally {
-        console.log("VideoHeaderSection: Setting news loading to false");
-        setNewsLoading(false);
-      }
-    };
-
-    fetchNews();
-  }, [isClient]);
-
-
 
   return (
     <div className="relative bg-white">
@@ -165,9 +112,6 @@ export default function VideoHeaderSection() {
           </div>
         </motion.div>
       </section>
-
-      {/* News Slider Section */}
-      {!newsLoading && news.length > 0 && <NewsSlider news={news} />}
     </div>
   );
 }

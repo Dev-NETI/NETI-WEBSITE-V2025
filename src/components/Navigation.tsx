@@ -133,31 +133,6 @@ export default function Navigation() {
         },
       ],
     },
-    {
-      href: "/contact",
-      label: "Contact",
-      icon: Phone,
-      dropdown: [
-        {
-          href: "/contact",
-          label: "Contact Us",
-          icon: Phone,
-          description: "Get in touch",
-        },
-        // {
-        //   href: "/contact#form",
-        //   label: "Send Message",
-        //   icon: Mail,
-        //   description: "Contact form",
-        // },
-        {
-          href: "/contact#office",
-          label: "Visit Office",
-          icon: Building,
-          description: "View our location on the map",
-        },
-      ],
-    },
   ];
 
   return (

@@ -6,6 +6,16 @@ import Navigation from "../components/Navigation";
 import VideoHeaderSection from "../components/VideoHeaderSection";
 import { Award } from "lucide-react";
 import EventsSection from "@/components/EventsSection";
+import CompanyProfileVideo from "@/components/CompanyProfileVideo";
+import WhatWeOffer from "@/components/WhatWeOffer";
+import { NewsArticle } from "@/lib/news-db";
+import NewsSlider from "@/components/NewsSlider";
+
+interface NewsApiResponse {
+  success: boolean;
+  data: NewsArticle[];
+  count: number;
+}
 
 export default function HomePage() {
   const [isClient, setIsClient] = useState(false);
@@ -15,6 +25,48 @@ export default function HomePage() {
 
   // Background parallax effects
   const backgroundY = useTransform(scrollY, [0, 1500], [0, -500]);
+  const [news, setNews] = useState<NewsArticle[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
+
+  // Fetch news from API
+  useEffect(() => {
+    if (!isClient) return;
+
+    const fetchNews = async () => {
+      try {
+        setNewsLoading(true);
+        console.log("VideoHeaderSection: Starting to fetch news...");
+        const response = await fetch("/api/news?limit=6");
+        const result: NewsApiResponse = await response.json();
+
+        console.log(
+          "VideoHeaderSection: News API response:",
+          response.status,
+          response.ok
+        );
+        console.log("VideoHeaderSection: News API result:", result);
+
+        if (result.success) {
+          console.log("VideoHeaderSection: Fetched news:", result.data);
+          console.log(
+            "VideoHeaderSection: News array length:",
+            result.data?.length || 0
+          );
+          console.log("VideoHeaderSection: Setting news state...");
+          setNews(result.data);
+        } else {
+          console.log("VideoHeaderSection: News API error:", result);
+        }
+      } catch (error) {
+        console.error("VideoHeaderSection: Error fetching news:", error);
+      } finally {
+        console.log("VideoHeaderSection: Setting news loading to false");
+        setNewsLoading(false);
+      }
+    };
+
+    fetchNews();
+  }, [isClient]);
 
   useEffect(() => {
     setIsClient(true);
@@ -88,6 +140,10 @@ export default function HomePage() {
       <div className="pt-20">
         {/* Video Header Section with Articles */}
         <VideoHeaderSection />
+        <WhatWeOffer />
+        <CompanyProfileVideo />
+        {/* News Slider Section */}
+        {!newsLoading && news.length > 0 && <NewsSlider news={news} />}
         <EventsSection />
 
         {/* NETI Training Excellence Section */}

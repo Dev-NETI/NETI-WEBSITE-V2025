@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, Phone, Facebook } from "lucide-react";
+import { Mail, Phone, Facebook, Clock, MapPin } from "lucide-react";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -53,20 +53,35 @@ export default function Footer() {
 
   const contactInfo = [
     {
-      icon: Mail,
-      text: "neti@neti.com.ph",
-      href: "mailto:neti@neti.com.ph",
+      icon: Phone,
+      text: "(049) 508-8600",
+      label: "Laguna Office",
+      href: "tel:(049) 508-8600",
     },
     {
       icon: Phone,
-      text: "(049) 508-8600",
-      href: "tel:(049) 508-8600",
+      text: "(02) 908-4900",
+      label: "Manila Office",
+      href: "tel:(02) 908-4900",
     },
-    // {
-    //   icon: MapPin,
-    //   text: "Knowledge Avenue, Carmeltown, Canlubang, Calamba City 4037, Laguna, Philippines",
-    //   href: "#",
-    // },
+    {
+      icon: Mail,
+      text: "info@neti-portal.com",
+      label: "Email",
+      href: "mailto:info@neti-portal.com",
+    },
+    {
+      icon: Clock,
+      text: "Monday - Friday, 8:00 AM - 5:00 PM",
+      label: "Working Hours",
+      href: "#",
+    },
+    {
+      icon: MapPin,
+      text: "Knowledge Avenue, Carmeltown, Canlubang, Calamba City 4037, Laguna, Philippines",
+      label: "Address",
+      href: "https://maps.google.com/?q=Knowledge+Avenue,+Carmeltown,+Canlubang,+Calamba+City+4037,+Laguna,+Philippines",
+    },
   ];
 
   const containerVariants = {
@@ -122,27 +137,12 @@ export default function Footer() {
                   development.
                 </p>
               </div>
-
-              {/* Contact Information */}
-              <div className="space-y-3">
-                {contactInfo.map((contact, index) => (
-                  <motion.a
-                    key={index}
-                    href={contact.href}
-                    variants={itemVariants}
-                    className="flex items-center space-x-3 text-slate-600 hover:text-slate-800 transition-colors duration-300 group"
-                  >
-                    <contact.icon className="w-4 h-4 text-blue-600 group-hover:text-blue-700 transition-colors duration-300" />
-                    <span className="text-sm">{contact.text}</span>
-                  </motion.a>
-                ))}
-              </div>
             </motion.div>
 
             {/* Company Links */}
             <motion.div variants={itemVariants} className="lg:col-span-1">
               <h4 className="text-lg font-semibold text-slate-800 mb-6">
-                Company
+                MAIN MENU
               </h4>
               <ul className="space-y-3">
                 {footerLinks.company.map((link, index) => (
@@ -160,21 +160,54 @@ export default function Footer() {
 
             {/* Services Links */}
             <motion.div variants={itemVariants} className="lg:col-span-1">
-              <h4 className="text-lg font-semibold text-slate-800 mb-6">
-                Services
-              </h4>
-              <ul className="space-y-3">
-                {footerLinks.services.map((link, index) => (
-                  <motion.li key={index} variants={itemVariants}>
-                    <Link
-                      href={link.href}
-                      className="text-slate-600 hover:text-blue-600 transition-colors duration-300 hover:translate-x-1 inline-block"
-                    >
-                      {link.name}
-                    </Link>
-                  </motion.li>
+              {/* Contact Information */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-semibold text-slate-800 mb-4">
+                  CONTACT US
+                </h4>
+                {contactInfo.map((contact, index) => (
+                  <motion.div
+                    key={index}
+                    variants={itemVariants}
+                    className="group"
+                  >
+                    {contact.href === "#" ? (
+                      <div className="flex items-start space-x-3 text-slate-600">
+                        <contact.icon className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-slate-700">
+                            {contact.label}
+                          </div>
+                          <div className="text-sm text-slate-600">
+                            {contact.text}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <a
+                        href={contact.href}
+                        target={contact.icon === MapPin ? "_blank" : undefined}
+                        rel={
+                          contact.icon === MapPin
+                            ? "noopener noreferrer"
+                            : undefined
+                        }
+                        className="flex items-start space-x-3 text-slate-600 hover:text-slate-800 transition-colors duration-300 group"
+                      >
+                        <contact.icon className="w-4 h-4 text-blue-600 group-hover:text-blue-700 transition-colors duration-300 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-slate-700 group-hover:text-blue-600 transition-colors duration-300">
+                            {contact.label}
+                          </div>
+                          <div className="text-sm group-hover:text-slate-800 transition-colors duration-300">
+                            {contact.text}
+                          </div>
+                        </div>
+                      </a>
+                    )}
+                  </motion.div>
                 ))}
-              </ul>
+              </div>
             </motion.div>
 
             {/* Support & Social */}
@@ -197,7 +230,7 @@ export default function Footer() {
 
               {/* Social Media Links */}
               <div>
-                <h4 className="text-lg font-semibold text-white mb-4">
+                <h4 className="text-lg font-semibold text-slate-800 mb-4">
                   Follow Us
                 </h4>
                 <div className="flex space-x-4">
