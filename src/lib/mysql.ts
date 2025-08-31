@@ -56,9 +56,9 @@ export async function testConnection(retries = 3): Promise<boolean> {
 }
 
 // Enhanced query execution with connection management
-export async function executeQuery<T = any>(
+export async function executeQuery<T = unknown>(
   query: string,
-  params: any[] = []
+  params: unknown[] = []
 ): Promise<T[]> {
   const pool = getPool();
   let connection: mysql.PoolConnection | null = null;
@@ -69,6 +69,54 @@ export async function executeQuery<T = any>(
     return rows as T[];
   } catch (error) {
     console.error('Query execution failed:', error);
+    console.error('Query:', query);
+    console.error('Params:', params);
+    throw error;
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
+// Special function for INSERT operations that returns insertId
+export async function executeInsert(
+  query: string,
+  params: unknown[] = []
+): Promise<{ insertId: number }> {
+  const pool = getPool();
+  let connection: mysql.PoolConnection | null = null;
+  
+  try {
+    connection = await pool.getConnection();
+    const [result] = await connection.execute(query, params);
+    return result as { insertId: number };
+  } catch (error) {
+    console.error('Insert execution failed:', error);
+    console.error('Query:', query);
+    console.error('Params:', params);
+    throw error;
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
+// Special function for UPDATE/DELETE operations that returns affectedRows
+export async function executeUpdate(
+  query: string,
+  params: unknown[] = []
+): Promise<{ affectedRows: number }> {
+  const pool = getPool();
+  let connection: mysql.PoolConnection | null = null;
+  
+  try {
+    connection = await pool.getConnection();
+    const [result] = await connection.execute(query, params);
+    return result as { affectedRows: number };
+  } catch (error) {
+    console.error('Update execution failed:', error);
     console.error('Query:', query);
     console.error('Params:', params);
     throw error;
@@ -101,8 +149,8 @@ export async function executeTransaction<T>(
 }
 
 // Batch query execution for better performance
-export async function executeBatch<T = any>(
-  queries: { query: string; params?: any[] }[]
+export async function executeBatch<T = unknown>(
+  queries: { query: string; params?: unknown[] }[]
 ): Promise<T[][]> {
   const pool = getPool();
   let connection: mysql.PoolConnection | null = null;
@@ -128,9 +176,9 @@ export async function executeBatch<T = any>(
 }
 
 // Utility function for safe database operations
-export async function safeExecuteQuery<T = any>(
+export async function safeExecuteQuery<T = unknown>(
   query: string,
-  params: any[] = [],
+  params: unknown[] = [],
   fallbackValue: T[] = []
 ): Promise<T[]> {
   try {

@@ -38,10 +38,9 @@ const itemVariants = {
     scale: 1,
     transition: {
       duration: 0.7,
-      ease: [0.25, 0.46, 0.45, 0.94],
     },
   },
-};
+} as const;
 
 const cardHoverVariants = {
   hover: {
@@ -49,10 +48,9 @@ const cardHoverVariants = {
     scale: 1.02,
     transition: {
       duration: 0.3,
-      ease: "easeOut",
     },
   },
-};
+} as const;
 
 export default function EventsSection() {
   const [events, setEvents] = useState<Event[]>([]);

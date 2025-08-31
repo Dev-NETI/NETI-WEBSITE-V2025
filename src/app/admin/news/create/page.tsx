@@ -168,7 +168,7 @@ export default function CreateNewsPage() {
 
   if (!canManageNews) {
     return (
-      <ProtectedRoute requiredPermissions={['news_manager']}>
+      <ProtectedRoute>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -182,7 +182,7 @@ export default function CreateNewsPage() {
 
   if (success) {
     return (
-      <ProtectedRoute requiredPermissions={['news_manager']}>
+      <ProtectedRoute >
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -200,7 +200,7 @@ export default function CreateNewsPage() {
   }
 
   return (
-    <ProtectedRoute requiredPermissions={['news_manager']}>
+    <ProtectedRoute >
       <div className="min-h-screen bg-gray-50">
         <AdminHeader />
         

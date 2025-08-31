@@ -6,7 +6,7 @@ import { cookies } from 'next/headers';
 export async function GET() {
   try {
     // Check authentication
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('admin-token')?.value;
     
     if (!token) {

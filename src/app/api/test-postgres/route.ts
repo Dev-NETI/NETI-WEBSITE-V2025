@@ -44,7 +44,7 @@ export async function GET() {
       return NextResponse.json({
         success: true,
         message: 'Vercel Postgres connection successful with createClient',
-        timestamp: result.rows[0]?.current_time,
+        timestamp: (result as { rows: Array<{ current_time: string }> }).rows[0]?.current_time,
         duration: duration,
         fallback: false
       });
@@ -53,13 +53,13 @@ export async function GET() {
       
       // Try with sql template literal without pooling
       try {
-        const result = await sql`SELECT NOW() as current_time`;
+        const result = await (sql as (template: TemplateStringsArray, ...values: unknown[]) => Promise<{ rows: Array<{ current_time: string }> }>)`SELECT NOW() as current_time`;
         console.log('Database query successful with sql template:', result);
         
         return NextResponse.json({
           success: true,
           message: 'Vercel Postgres connection successful with sql template',
-          timestamp: result.rows[0]?.current_time,
+          timestamp: (result as { rows: Array<{ current_time: string }> }).rows[0]?.current_time,
           fallback: false
         });
       } catch (sqlError) {

@@ -1,12 +1,8 @@
 // Import fallback database operations
-import {
-  fallbackUserOperations,
-  fallbackEventOperations,
-  isDevelopmentFallback,
-} from "./db-fallback";
+import { isDevelopmentFallback } from "./db-fallback";
 
 // Types for database operations
-export interface DatabaseResult<T = any> {
+export interface DatabaseResult<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -45,10 +41,11 @@ export async function healthCheck(): Promise<
 }
 
 // Generic query execution - now routes to fallback
-export async function executeQuery<T = any>(
-  queryTemplate: TemplateStringsArray,
-  ...values: any[]
-): Promise<DatabaseResult<T[]>> {
+export async function executeQuery<
+  T = unknown
+>(): // _queryTemplate: TemplateStringsArray,
+// ..._values: unknown[]
+Promise<DatabaseResult<T[]>> {
   // For fallback database, we don't use raw queries
   return {
     success: false,

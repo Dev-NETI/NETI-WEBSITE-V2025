@@ -28,7 +28,7 @@ export async function GET() {
     await ensureDatabaseInitialized();
     
     // Check authentication
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('admin-token')?.value;
     
     if (!token) {
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     await ensureDatabaseInitialized();
     
     // Check authentication
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('admin-token')?.value;
     
     if (!token) {
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
       name,
       password,
       role,
-      created_by: admin.id
+      createdBy: admin.id
     });
     
     if (!result.success) {

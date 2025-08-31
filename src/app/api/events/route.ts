@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Set defaults for optional fields
-    const eventData: Omit<Event, 'id' | 'createdAt' | 'updatedAt'> = {
+    const eventData: Omit<Event, 'id'> = {
       title: body.title,
       date: body.date,
       time: body.time,
@@ -79,8 +79,10 @@ export async function POST(request: NextRequest) {
       attendees: body.attendees || '0',
       image: body.image || '/assets/images/nttc.jpg',
       status: body.status || 'upcoming',
-      maxCapacity: body.maxCapacity || 100,
-      currentRegistrations: body.currentRegistrations || 0,
+      max_capacity: body.maxCapacity || 100,
+      current_registrations: body.currentRegistrations || 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
     const result = await createEvent(eventData);

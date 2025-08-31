@@ -5,16 +5,16 @@ import { useAuth } from './useAuth';
 import type { UserRole } from '@/lib/user';
 
 // Client-side permissions mapping
-const PERMISSIONS = {
+const PERMISSIONS: Record<UserRole | 'admin', string[]> = {
   super_admin: ['users', 'events', 'news', 'settings'],
   user_manager: ['users'],
   events_manager: ['events'],
   news_manager: ['news'],
   admin: ['users', 'events', 'news', 'settings'] // Legacy admin role
-} as const;
+};
 
 function hasPermission(userRole: UserRole | 'admin', permission: string): boolean {
-  return PERMISSIONS[userRole as keyof typeof PERMISSIONS]?.includes(permission as 'users' | 'events' | 'news' | 'settings') || false;
+  return PERMISSIONS[userRole]?.includes(permission) || false;
 }
 
 export interface UsePermissionsReturn {
@@ -68,7 +68,7 @@ export function usePermissions(): UsePermissionsReturn {
     canManageEvents: checkPermission('events'),
     canManageNews: checkPermission('news'),
     canManageSettings: checkPermission('settings'),
-    isSuperAdmin: userRole === 'super_admin' || userRole === 'admin',
+    isSuperAdmin: userRole === 'super_admin' || (userRole as string) === 'admin',
     userRole,
     permissions
   };

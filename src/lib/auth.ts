@@ -72,9 +72,9 @@ export async function getAdminByEmail(email: string): Promise<Admin | null> {
         password: result.data.password || '',
         name: result.data.name,
         role: result.data.role,
-        createdAt: result.data.created_at,
-        updatedAt: result.data.updated_at,
-        lastLogin: result.data.last_login
+        createdAt: result.data.createdAt,
+        updatedAt: result.data.updatedAt,
+        lastLogin: result.data.lastLogin
       };
     }
     return null;
@@ -99,9 +99,9 @@ export async function getAdminById(id: string): Promise<Admin | null> {
         password: result.data.password || '',
         name: result.data.name,
         role: result.data.role,
-        createdAt: result.data.created_at,
-        updatedAt: result.data.updated_at,
-        lastLogin: result.data.last_login
+        createdAt: result.data.createdAt,
+        updatedAt: result.data.updatedAt,
+        lastLogin: result.data.lastLogin
       };
     }
     return null;
@@ -174,8 +174,8 @@ export async function authenticateAdmin(
               email: result.data.email,
               name: result.data.name,
               role: result.data.role,
-              createdAt: result.data.created_at,
-              updatedAt: result.data.updated_at,
+              createdAt: result.data.createdAt,
+              updatedAt: result.data.updatedAt,
               lastLogin: new Date().toISOString(),
             },
           };
