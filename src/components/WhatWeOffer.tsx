@@ -67,13 +67,13 @@ const services: Service[] = [
   },
   {
     id: "mandatory",
-    title: "MANDATORY",
+    title: "STCW-MANDATORY TRAINING",
     shortDesc: "Essential safety and compliance training",
     icon: BookOpen,
     color: "text-orange-400",
     bgGradient: "from-orange-500/20 to-red-500/20",
     description:
-      "Mandatory training courses are required by international maritime law for all seafarers. These courses cover essential safety protocols, survival techniques, and emergency procedures that every maritime professional must know.",
+      "STCW-Mandatory training courses are required by international maritime law for all seafarers. These courses cover essential safety protocols, survival techniques, and emergency procedures that every maritime professional must know.",
     features: [
       "Personal Survival Techniques (PST)",
       "Fire Prevention and Fire Fighting",
@@ -85,13 +85,13 @@ const services: Service[] = [
   },
   {
     id: "upgrading",
-    title: "UPGRADING",
+    title: "UPGRADING TRAINING",
     shortDesc: "Career advancement and skill enhancement",
     icon: TrendingUp,
     color: "text-purple-400",
     bgGradient: "from-purple-500/20 to-pink-500/20",
     description:
-      "Upgrading courses are designed for maritime professionals looking to advance their careers and obtain higher-level certifications. These programs focus on leadership, advanced technical skills, and management capabilities.",
+      "Upgrading training courses are designed for maritime professionals looking to advance their careers and obtain higher-level certifications. These programs focus on leadership, advanced technical skills, and management capabilities.",
     features: [
       "Leadership and Management Training",
       "Advanced Navigation Systems",
@@ -251,24 +251,17 @@ export default function WhatWeOffer() {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="space-y-6"
               >
-                <p className="text-xl text-gray-600 leading-relaxed">
-                  Comprehensive maritime training programs designed to meet
-                  international standards and advance your maritime career with
-                  world-class education and certification.
-                </p>
-                <p className="text-lg text-gray-600 leading-relaxed">
-                  At NYK-Fil Maritime E-Training Inc., we provide specialized
-                  training courses that comply with international maritime
-                  regulations and industry best practices. Our programs are
-                  designed to equip maritime professionals with the knowledge
-                  and skills needed to excel in today&apos;s competitive maritime
-                  industry.
-                </p>
-                <p className="text-lg text-gray-600 leading-relaxed">
-                  From mandatory safety training to advanced upgrading courses,
-                  we offer a complete range of maritime education solutions.
-                  Each program is delivered by experienced instructors using
-                  state-of-the-art facilities and modern training methodologies.
+                <p className="text-xl text-gray-600 leading-relaxed text-justify">
+                  NYK-Fil Maritime E-Training Inc. delivers comprehensive
+                  maritime training programs that meet international standards
+                  and advance your career with world-class education and
+                  certification. Our specialized courses comply with
+                  international maritime regulations and are taught by
+                  experienced instructors using state-of-the-art facilities and
+                  modern methodologies. From mandatory safety training to
+                  advanced upgrading courses, we equip maritime professionals
+                  with the knowledge and skills needed to excel in today's
+                  competitive industry.
                 </p>
               </motion.div>
             </div>
