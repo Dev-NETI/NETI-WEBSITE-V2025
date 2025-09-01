@@ -260,7 +260,7 @@ export default function WhatWeOffer() {
                   experienced instructors using state-of-the-art facilities and
                   modern methodologies. From mandatory safety training to
                   advanced upgrading courses, we equip maritime professionals
-                  with the knowledge and skills needed to excel in today's
+                  with the knowledge and skills needed to excel in today&apos;s
                   competitive industry.
                 </p>
               </motion.div>
