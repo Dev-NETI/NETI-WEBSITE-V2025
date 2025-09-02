@@ -3,15 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import {
-  Eye,
-  EyeOff,
-  Lock,
-  Mail,
-  AlertCircle,
-  LogIn,
-} from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, AlertCircle, LogIn } from "lucide-react";
 import Image from "next/image";
+import { loginToLaravel, verifyLaravelToken } from "@/lib/laravel-auth";
 
 interface LoginFormData {
   email: string;
@@ -22,6 +16,7 @@ interface ApiResponse {
   success: boolean;
   message?: string;
   error?: string;
+  token?: string;
   admin?: {
     id: string;
     email: string;
@@ -45,8 +40,7 @@ export default function AdminLoginPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("/api/auth/verify");
-        const result: ApiResponse = await response.json();
+        const result = await verifyLaravelToken();
 
         if (result.success) {
           router.push("/admin/dashboard");
@@ -79,15 +73,7 @@ export default function AdminLoginPage() {
         return;
       }
 
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const result: ApiResponse = await response.json();
+      const result = await loginToLaravel(formData.email, formData.password);
 
       if (result.success) {
         setSuccess(true);
