@@ -68,7 +68,7 @@ export async function getAllUsers(): Promise<DatabaseResult<User[]>> {
   }
 }
 
-// Get user by ID
+// Get user by ID (active only)
 export async function getUserById(id: string): Promise<DatabaseResult<User>> {
   try {
     const result = await usersDB.findOne(
@@ -95,6 +95,40 @@ export async function getUserById(id: string): Promise<DatabaseResult<User>> {
     return { success: true, data: user };
   } catch (error) {
     console.error("Error getting user by ID:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to get user",
+    };
+  }
+}
+
+// Get user by ID (including inactive users - for admin view)
+export async function getUserByIdForAdmin(id: string): Promise<DatabaseResult<User>> {
+  try {
+    const result = await usersDB.findOne(
+      (user) => user.id === id
+    );
+    if (!result.success || !result.data) {
+      return result;
+    }
+
+    // Convert UserDocument to User format
+    const user: User = {
+      id: result.data.id,
+      email: result.data.email,
+      name: result.data.name,
+      password: result.data.password,
+      role: result.data.role,
+      isActive: result.data.isActive,
+      createdAt: result.data.createdAt,
+      updatedAt: result.data.updatedAt,
+      lastLogin: result.data.lastLogin,
+      createdBy: result.data.createdBy,
+    };
+
+    return { success: true, data: user };
+  } catch (error) {
+    console.error("Error getting user by ID for admin:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to get user",

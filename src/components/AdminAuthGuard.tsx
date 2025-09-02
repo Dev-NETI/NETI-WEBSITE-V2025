@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { AlertCircle } from "lucide-react";
+import { verifyLaravelToken } from "@/lib/laravel-auth";
 
 interface AdminAuthGuardProps {
   children: React.ReactNode;
@@ -15,7 +16,10 @@ interface AuthResponse {
     id: string;
     email: string;
     name: string;
-    role: string;
+    role?: string;     // Primary role for backward compatibility
+    roles?: string[];  // Multiple roles array
+    createdAt?: string;
+    updatedAt?: string;
   };
   error?: string;
 }
@@ -29,12 +33,7 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("/api/auth/verify", {
-          method: "GET",
-          credentials: "include",
-        });
-
-        const result: AuthResponse = await response.json();
+        const result = await verifyLaravelToken();
 
         if (result.success && result.admin) {
           setAuthenticated(true);
