@@ -10,20 +10,6 @@ interface AdminAuthGuardProps {
   children: React.ReactNode;
 }
 
-interface AuthResponse {
-  success: boolean;
-  admin?: {
-    id: string;
-    email: string;
-    name: string;
-    role?: string;     // Primary role for backward compatibility
-    roles?: string[];  // Multiple roles array
-    createdAt?: string;
-    updatedAt?: string;
-  };
-  error?: string;
-}
-
 export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);

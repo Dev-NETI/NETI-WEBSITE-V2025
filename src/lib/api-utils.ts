@@ -90,7 +90,7 @@ export async function apiRequest<T = any>(
   } catch (error) {
     clearTimeout(timeoutId);
 
-    if (error.name === "AbortError") {
+    if (error instanceof Error && error.name === "AbortError") {
       const timeoutError: ApiError = {
         message: "Request timeout",
         code: "TIMEOUT",

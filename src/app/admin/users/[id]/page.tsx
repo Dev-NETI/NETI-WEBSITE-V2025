@@ -362,11 +362,11 @@ export default function UserDetailPage() {
                           </div>
                         </div>
                       )}
-                      {user.createdBy && (
+                      {'createdBy' in user && (user as { createdBy?: string }).createdBy && (
                         <div>
                           <label className="text-sm font-medium text-gray-500">Created By</label>
                           <div className="mt-1 text-gray-900">
-                            {user.createdBy}
+                            {(user as { createdBy?: string }).createdBy}
                           </div>
                         </div>
                       )}

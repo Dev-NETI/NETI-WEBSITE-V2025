@@ -175,7 +175,7 @@ export default function WhatWeOffer() {
   };
 
   return (
-    <section className="pt-12 relative overflow-hidden">
+    <section className="p-12 relative overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         <div
