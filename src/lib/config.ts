@@ -48,6 +48,9 @@ export const config = {
   },
 } as const;
 
+// Export API_BASE_URL for backward compatibility
+export const API_BASE_URL = config.LARAVEL_BASE_URL;
+
 // Type definitions for better TypeScript support
 export type Config = typeof config;
 export type ApiEndpoint = keyof typeof config.API_ENDPOINTS;

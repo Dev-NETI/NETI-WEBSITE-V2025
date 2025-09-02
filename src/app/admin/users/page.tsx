@@ -241,11 +241,44 @@ export default function UsersPage() {
           </div>
         </motion.div>
 
+        {/* Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4"
+        >
+          <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="text-2xl font-bold text-blue-600">{users.length}</div>
+            <div className="text-sm text-gray-600">Total Users</div>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="text-2xl font-bold text-green-600">
+              {users.filter(u => u.isActive).length}
+            </div>
+            <div className="text-sm text-gray-600">Active Users</div>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="text-2xl font-bold text-purple-600">
+              {users.filter(u => u.role === 'super_admin').length}
+            </div>
+            <div className="text-sm text-gray-600">Super Admins</div>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="text-2xl font-bold text-orange-600">
+              {users.filter(u => u.lastLogin && 
+                new Date(u.lastLogin) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+              ).length}
+            </div>
+            <div className="text-sm text-gray-600">Active This Week</div>
+          </div>
+        </motion.div>
+
         {/* Filters */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.2 }}
           className="mb-6 bg-white rounded-xl shadow-sm border p-6"
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -297,7 +330,7 @@ export default function UsersPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.3 }}
           className="bg-white rounded-xl shadow-sm border overflow-hidden"
         >
           {loading ? (
@@ -455,39 +488,6 @@ export default function UsersPage() {
               </table>
             </div>
           )}
-        </motion.div>
-
-        {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4"
-        >
-          <div className="bg-white rounded-lg shadow-sm border p-4">
-            <div className="text-2xl font-bold text-blue-600">{users.length}</div>
-            <div className="text-sm text-gray-600">Total Users</div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {users.filter(u => u.isActive).length}
-            </div>
-            <div className="text-sm text-gray-600">Active Users</div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border p-4">
-            <div className="text-2xl font-bold text-purple-600">
-              {users.filter(u => u.role === 'super_admin').length}
-            </div>
-            <div className="text-sm text-gray-600">Super Admins</div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border p-4">
-            <div className="text-2xl font-bold text-orange-600">
-              {users.filter(u => u.lastLogin && 
-                new Date(u.lastLogin) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-              ).length}
-            </div>
-            <div className="text-sm text-gray-600">Active This Week</div>
-          </div>
         </motion.div>
         </div>
       </div>

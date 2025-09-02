@@ -115,7 +115,7 @@ async function makeAuthenticatedRequest(
 // Get all users
 export async function getAllUsers(): Promise<UsersResponse> {
   try {
-    const response = await makeAuthenticatedRequest('/users');
+    const response = await makeAuthenticatedRequest('/api/users');
     const result = await response.json();
     return result;
   } catch (error) {
@@ -130,7 +130,7 @@ export async function getAllUsers(): Promise<UsersResponse> {
 // Get user by ID
 export async function getUserById(id: string): Promise<UserResponse> {
   try {
-    const response = await makeAuthenticatedRequest(`/users/${id}`);
+    const response = await makeAuthenticatedRequest(`/api/users/${id}`);
     const result = await response.json();
     return result;
   } catch (error) {
@@ -145,7 +145,7 @@ export async function getUserById(id: string): Promise<UserResponse> {
 // Create new user
 export async function createUser(userData: CreateUserData): Promise<UserResponse> {
   try {
-    const response = await makeAuthenticatedRequest('/users', {
+    const response = await makeAuthenticatedRequest('/api/users', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
@@ -164,7 +164,7 @@ export async function createUser(userData: CreateUserData): Promise<UserResponse
 // Update user
 export async function updateUser(id: string, userData: UpdateUserData): Promise<UserResponse> {
   try {
-    const response = await makeAuthenticatedRequest(`/users/${id}`, {
+    const response = await makeAuthenticatedRequest(`/api/users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(userData),
     });
@@ -183,7 +183,7 @@ export async function updateUser(id: string, userData: UpdateUserData): Promise<
 // Delete user (soft delete)
 export async function deleteUser(id: string): Promise<{ success: boolean; error?: string; message?: string }> {
   try {
-    const response = await makeAuthenticatedRequest(`/users/${id}`, {
+    const response = await makeAuthenticatedRequest(`/api/users/${id}`, {
       method: 'DELETE',
     });
     
@@ -201,7 +201,7 @@ export async function deleteUser(id: string): Promise<{ success: boolean; error?
 // Toggle user status
 export async function toggleUserStatus(id: string, isActive: boolean): Promise<UserResponse> {
   try {
-    const response = await makeAuthenticatedRequest(`/users/${id}/toggle-status`, {
+    const response = await makeAuthenticatedRequest(`/api/users/${id}/toggle-status`, {
       method: 'PATCH',
       body: JSON.stringify({ is_active: isActive }),
     });
@@ -220,7 +220,7 @@ export async function toggleUserStatus(id: string, isActive: boolean): Promise<U
 // Get available roles
 export async function getRoles(): Promise<RolesResponse> {
   try {
-    const response = await makeAuthenticatedRequest('/roles');
+    const response = await makeAuthenticatedRequest('/api/roles');
     const result = await response.json();
     return result;
   } catch (error) {
