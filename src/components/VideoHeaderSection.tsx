@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 
 export default function VideoHeaderSection() {
-
   return (
     <div className="relative bg-white">
       {/* Professional Video Header Section */}
@@ -34,7 +33,7 @@ export default function VideoHeaderSection() {
             <div className="max-w-4xl mx-auto">
               {/* Main Heading */}
               <motion.h1
-                className="text-5xl md:text-9xl font-bold mb-25 relative text-center"
+                className="text-5xl md:text-5xl font-bold mb-25 relative text-center"
                 initial={{ opacity: 0, y: 50, scale: 0.8 }}
                 animate={{
                   opacity: 1,

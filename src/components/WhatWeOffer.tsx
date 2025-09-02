@@ -4,7 +4,6 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Anchor,
-  Shield,
   BookOpen,
   TrendingUp,
   Building,
@@ -12,10 +11,10 @@ import {
   Flag,
   X,
   ChevronRight,
-  Award,
   Users,
   CheckCircle,
 } from "lucide-react";
+import CompanyProfileVideo from "./CompanyProfileVideo";
 
 interface Service {
   id: string;
@@ -31,13 +30,13 @@ interface Service {
 const services: Service[] = [
   {
     id: "nmc",
-    title: "NMC",
+    title: "NMC & NMCR",
     shortDesc: "Comprehensive maritime education and training programs",
     icon: Anchor,
     color: "text-blue-400",
     bgGradient: "from-blue-500/20 to-cyan-500/20",
     description:
-      "Our NMC courses are designed to prepare students for successful careers in the maritime industry with hands-on training and theoretical knowledge.",
+      "Our NMC & NMCR courses are designed to prepare students for successful careers in the maritime industry with hands-on training and theoretical knowledge.",
     features: [
       "Navigation and Seamanship",
       "Maritime Law and Regulations",
@@ -45,24 +44,6 @@ const services: Service[] = [
       "Safety Procedures and Emergency Response",
       "Maritime Communication Systems",
       "Cargo Handling and Stowage",
-    ],
-  },
-  {
-    id: "nmcr",
-    title: "NMCR",
-    shortDesc: "Refresher courses for maritime professionals",
-    icon: Shield,
-    color: "text-emerald-400",
-    bgGradient: "from-emerald-500/20 to-teal-500/20",
-    description:
-      "NMCR refresher courses are mandatory for maritime professionals to maintain their certifications and stay updated with the latest maritime regulations, technologies, and safety procedures. These courses ensure continuous professional development.",
-    features: [
-      "Updated Maritime Regulations",
-      "Advanced Safety Procedures",
-      "New Technology Integration",
-      "Emergency Response Updates",
-      "Environmental Protection Standards",
-      "International Maritime Standards",
     ],
   },
   {
@@ -192,35 +173,16 @@ export default function WhatWeOffer() {
   };
 
   return (
-    <section className="py-24 bg-gradient-to-br from-slate-50 to-blue-50 relative overflow-hidden">
-      {/* Background Elements */}
+    <section className="p-12 relative overflow-hidden">
+      {/* Background Image */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-20 w-64 h-64 bg-blue-200/30 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-20 w-80 h-80 bg-cyan-200/20 rounded-full blur-3xl"></div>
-      </div>
-
-      {/* Animated Background Dots */}
-      <div className="absolute inset-0 pointer-events-none">
-        {Array.from({ length: 20 }, (_, i) => (
-          <motion.div
-            key={`bg-dot-${i}`}
-            className="absolute w-1 h-1 bg-blue-300/40 rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              scale: [0, 1.5, 0],
-              opacity: [0, 0.6, 0],
-            }}
-            transition={{
-              duration: 4 + Math.random() * 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: Math.random() * 4,
-            }}
-          />
-        ))}
+        <div
+          className="w-full h-full bg-cover bg-center bg-no-repeat opacity-80"
+          style={{
+            backgroundImage: "url('/assets/images/nttc1.png')",
+          }}
+        />
+        <div className="absolute inset-0 bg-black/40" />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -236,7 +198,7 @@ export default function WhatWeOffer() {
             {/* Section Header */}
             <div className="mb-8">
               <motion.h2
-                className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
+                className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight"
                 initial={{ opacity: 0, y: -20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -251,66 +213,20 @@ export default function WhatWeOffer() {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="space-y-6"
               >
-                <p className="text-xl text-gray-600 leading-relaxed text-justify">
-                  NYK-Fil Maritime E-Training Inc. delivers comprehensive
-                  maritime training programs that meet international standards
-                  and advance your career with world-class education and
-                  certification. Our specialized courses comply with
-                  international maritime regulations and are taught by
-                  experienced instructors using state-of-the-art facilities and
-                  modern methodologies. From mandatory safety training to
-                  advanced upgrading courses, we equip maritime professionals
-                  with the knowledge and skills needed to excel in today&apos;s
-                  competitive industry.
+                <p className="text-xl text-white leading-relaxed text-justify">
+                  NETI offers comprehensive maritime training programs designed
+                  to meet international standards. Our programs equip maritime
+                  professionals with the knowledge and skills needed to excel in
+                  today’s competitive maritime industry. From mandatory safety
+                  training to advanced upgrading and specialized courses, we
+                  ensure that each program is delivered by experienced
+                  instructors using state-of-the-art facilities and modern
+                  training methodologies.
                 </p>
               </motion.div>
             </div>
 
-            {/* Key Features */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg"
-            >
-              <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                <Award className="w-6 h-6 text-blue-600" />
-                Why Choose NETI?
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                  <span className="text-gray-700">
-                    STCW-compliant training programs
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                  <span className="text-gray-700">
-                    Experienced maritime instructors
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                  <span className="text-gray-700">
-                    Modern training facilities
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                  <span className="text-gray-700">
-                    International certifications
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                  <span className="text-gray-700">
-                    Job placement assistance
-                  </span>
-                </div>
-              </div>
-            </motion.div>
+            <CompanyProfileVideo />
           </motion.div>
 
           {/* Right Column - Services Grid */}

@@ -14,8 +14,8 @@ interface Admin {
   name: string;
   role?: string; // For backward compatibility - primary role
   roles?: string[]; // Multiple roles array from Laravel
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
   lastLogin?: string;
 }
 

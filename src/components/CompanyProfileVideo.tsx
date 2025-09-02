@@ -33,33 +33,9 @@ export default function CompanyProfileVideo({
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  // Generate random values once and store them
-  const randomValues = useRef({
-    organicShapes: Array.from({ length: 4 }, () => ({
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      moveX: Math.random() * 200 - 100,
-      moveY: Math.random() * 200 - 100,
-      delay: Math.random() * 8,
-      duration: 15 + Math.random() * 10,
-    })),
-    dots: Array.from({ length: 12 }, () => ({
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      delay: Math.random() * 4,
-      duration: 4 + Math.random() * 3,
-    })),
-    blobs: Array.from({ length: 3 }, () => ({
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      moveX: Math.random() * 150 - 75,
-      moveY: Math.random() * 150 - 75,
-      delay: Math.random() * 6,
-      duration: 18 + Math.random() * 12,
-    })),
-  });
+  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
 
   // Auto-hide controls
   useEffect(() => {
@@ -164,176 +140,14 @@ export default function CompanyProfileVideo({
     setShowControls(true);
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.8,
-        staggerChildren: 0.2,
-      },
-    },
-  };
-
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0 },
   };
 
-
   return (
-    <section className="py-24 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-white/20 rounded-full blur-3xl animate-pulse"></div>
-      </div>
-
-      {/* Abstract Animation Background */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Flowing Wave Lines */}
-        {Array.from({ length: 6 }, (_, i) => (
-          <motion.div
-            key={`wave-${i}`}
-            className="absolute w-full h-1 bg-gradient-to-r from-transparent via-blue-400/60 to-transparent"
-            style={{
-              top: `${20 + i * 15}%`,
-              transform: 'scaleX(1.5)',
-            }}
-            animate={{
-              x: ['-100%', '100%'],
-              opacity: [0, 0.9, 0],
-            }}
-            transition={{
-              duration: 8 + i * 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 1.5,
-            }}
-          />
-        ))}
-
-
-        {/* Flowing Organic Shapes */}
-        {randomValues.current.organicShapes.map((shape, i) => (
-          <motion.div
-            key={`organic-${i}`}
-            className="absolute w-40 h-40 bg-gradient-to-br from-blue-500/25 to-white/15 rounded-full blur-xl"
-            style={{
-              left: `${shape.left}%`,
-              top: `${shape.top}%`,
-            }}
-            animate={{
-              x: [0, shape.moveX, 0],
-              y: [0, shape.moveY, 0],
-              scale: [1, 1.5, 1],
-              opacity: [0.3, 0.8, 0.3],
-            }}
-            transition={{
-              duration: shape.duration,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: shape.delay,
-            }}
-          />
-        ))}
-
-        {/* Diagonal Lines */}
-        {Array.from({ length: 5 }, (_, i) => (
-          <motion.div
-            key={`diagonal-${i}`}
-            className="absolute w-1 h-full bg-gradient-to-b from-transparent via-white/30 to-transparent"
-            style={{
-              left: `${10 + i * 20}%`,
-              transform: `rotate(${15 + i * 10}deg)`,
-              transformOrigin: 'center',
-            }}
-            animate={{
-              opacity: [0, 0.8, 0],
-              scaleY: [0.5, 1, 0.5],
-            }}
-            transition={{
-              duration: 6 + i * 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 1,
-            }}
-          />
-        ))}
-
-        {/* Pulsing Dots */}
-        {randomValues.current.dots.map((dot, i) => (
-          <motion.div
-            key={`dot-${i}`}
-            className="absolute w-2 h-2 bg-blue-300/70 rounded-full"
-            style={{
-              left: `${dot.left}%`,
-              top: `${dot.top}%`,
-            }}
-            animate={{
-              scale: [0, 3, 0],
-              opacity: [0, 1, 0],
-            }}
-            transition={{
-              duration: dot.duration,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: dot.delay,
-            }}
-          />
-        ))}
-
-        {/* Morphing Blobs */}
-        {randomValues.current.blobs.map((blob, i) => (
-          <motion.div
-            key={`blob-${i}`}
-            className="absolute w-32 h-32 bg-gradient-to-r from-blue-600/30 to-purple-600/25 rounded-full blur-2xl"
-            style={{
-              left: `${blob.left}%`,
-              top: `${blob.top}%`,
-            }}
-            animate={{
-              x: [0, blob.moveX, 0],
-              y: [0, blob.moveY, 0],
-              scale: [1, 1.8, 1],
-              rotate: [0, 180, 360],
-              borderRadius: ["50%", "30%", "50%"],
-            }}
-            transition={{
-              duration: blob.duration,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: blob.delay,
-            }}
-          />
-        ))}
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <motion.h2
-            variants={itemVariants}
-            className="text-4xl md:text-5xl font-bold text-white mb-6"
-          >
-            COMPANY PROFILE
-          </motion.h2>
-          <motion.p
-            variants={itemVariants}
-            className="text-xl text-white/80 max-w-3xl mx-auto leading-relaxed"
-          >
-            Watch our journey of maritime excellence and discover how we&apos;re
-            shaping the future of maritime education
-          </motion.p>
-        </motion.div>
-
+    <section>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Centered Video Player */}
         <div className="flex justify-center">
           <motion.div
@@ -378,7 +192,6 @@ export default function CompanyProfileVideo({
                   />
                 </div>
               )}
-
 
               {/* Video Controls */}
               <AnimatePresence>

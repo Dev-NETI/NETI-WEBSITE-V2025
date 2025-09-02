@@ -12,19 +12,6 @@ interface LoginFormData {
   password: string;
 }
 
-interface ApiResponse {
-  success: boolean;
-  message?: string;
-  error?: string;
-  token?: string;
-  admin?: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-  };
-}
-
 export default function AdminLoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<LoginFormData>({

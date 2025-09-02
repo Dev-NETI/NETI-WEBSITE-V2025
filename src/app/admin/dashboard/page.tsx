@@ -7,13 +7,8 @@ import {
   Users,
   Calendar,
   Newspaper,
-  Settings,
-  TrendingUp,
-  Activity,
   Clock,
-  UserCheck,
   ArrowRight,
-  Bell,
   LogOut,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";

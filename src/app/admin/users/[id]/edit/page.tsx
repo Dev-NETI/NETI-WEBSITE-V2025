@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Save,
-  User,
+  User as UserIcon,
   Mail,
   Lock,
   Shield,
@@ -63,7 +63,7 @@ export default function EditUserPage() {
   const userId = params.id as string;
   
   const [user, setUser] = useState<User | null>(null);
-  const [roles, setRoles] = useState<Role[]>([]);
+  const [, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -284,7 +284,7 @@ export default function EditUserPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <User className="w-8 h-8 text-blue-600" />
+              <UserIcon className="w-8 h-8 text-blue-600" />
               Edit User
             </h1>
             <p className="mt-2 text-gray-600">Update user information and permissions</p>
@@ -330,7 +330,7 @@ export default function EditUserPage() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                       <input
                         type="text"
                         value={formData.name}

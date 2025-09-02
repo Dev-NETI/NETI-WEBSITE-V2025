@@ -72,7 +72,7 @@ export function usePermissions(): UsePermissionsReturn {
       adminRole: admin?.role
     });
     return roles;
-  }, [admin?.roles, admin?.role]);
+  }, [admin]);
   
   const userRole = userRoles[0] as UserRole || null; // Primary role for backward compatibility
   
