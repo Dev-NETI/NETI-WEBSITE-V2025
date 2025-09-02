@@ -240,7 +240,9 @@ export default function AdminDashboard() {
                     {stats.totalUsers}
                   </p>
                   <p className="text-lg text-gray-600 mb-1">Total Users</p>
-                  <p className="text-sm text-gray-400">System-wide registrations</p>
+                  <p className="text-sm text-gray-400">
+                    System-wide registrations
+                  </p>
                 </div>
                 <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg">
                   <Users className="w-8 h-8 text-white" />
@@ -255,7 +257,9 @@ export default function AdminDashboard() {
                     {stats.totalEvents}
                   </p>
                   <p className="text-lg text-gray-600 mb-1">Total Events</p>
-                  <p className="text-sm text-gray-400">Training programs available</p>
+                  <p className="text-sm text-gray-400">
+                    Training programs available
+                  </p>
                 </div>
                 <div className="p-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg">
                   <Calendar className="w-8 h-8 text-white" />
@@ -276,7 +280,7 @@ export default function AdminDashboard() {
                 Quick Actions
               </h2>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {filteredActions.map((action, index) => (
                 <motion.div
@@ -293,7 +297,7 @@ export default function AdminDashboard() {
                   >
                     {/* Background Pattern */}
                     <div className="absolute top-0 right-0 w-24 h-24 bg-gray-50 rounded-full -translate-y-8 translate-x-8 group-hover:scale-150 transition-transform duration-500" />
-                    
+
                     <div className="relative z-10">
                       <div
                         className={`inline-flex p-4 bg-gradient-to-br ${action.color} rounded-2xl text-white mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300`}
@@ -335,20 +339,28 @@ export default function AdminDashboard() {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-                    <span className="text-sm font-medium text-green-700">Database Connected</span>
+                    <span className="text-sm font-medium text-green-700">
+                      Database Connected
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
-                    <span className="text-sm font-medium text-blue-700">API Services Active</span>
+                    <span className="text-sm font-medium text-blue-700">
+                      API Services Active
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse" />
-                    <span className="text-sm font-medium text-purple-700">Authentication Online</span>
+                    <span className="text-sm font-medium text-purple-700">
+                      Authentication Online
+                    </span>
                   </div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-4xl font-bold text-green-600 mb-1">99.9%</div>
+                <div className="text-4xl font-bold text-green-600 mb-1">
+                  99.9%
+                </div>
                 <div className="text-sm text-gray-500">Uptime</div>
               </div>
             </div>
