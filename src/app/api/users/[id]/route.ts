@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById, updateUser, deleteUser } from "@/lib/user-db";
+import { getUserByIdForAdmin, updateUser, deleteUser } from "@/lib/user-db";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 
@@ -41,7 +41,8 @@ export async function GET(
         { status: 403 }
       );
     }
-    const result = await getUserById(id);
+    // Use getUserByIdForAdmin to include inactive users for admin view
+    const result = await getUserByIdForAdmin(id);
 
     if (!result.success) {
       return NextResponse.json(
