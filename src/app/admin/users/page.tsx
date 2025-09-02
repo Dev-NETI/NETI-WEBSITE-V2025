@@ -15,36 +15,42 @@ import {
   UserX,
   Calendar,
   Mail,
-  Clock
+  Clock,
+  ArrowRight
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import type { User, UserRole } from "@/lib/user";
+import type { User, UserRole } from "@/lib/laravel-user";
+import { getAllUsers, deleteUser, toggleUserStatus } from "@/lib/laravel-user";
+import Image from "next/image";
 
-interface UsersResponse {
-  success: boolean;
-  users?: User[];
-  error?: string;
-}
 
 const ROLE_COLORS = {
   super_admin: "bg-red-100 text-red-800 border-red-200",
-  user_manager: "bg-blue-100 text-blue-800 border-blue-200",
-  events_manager: "bg-green-100 text-green-800 border-green-200",
-  news_manager: "bg-purple-100 text-purple-800 border-purple-200"
+  user_management: "bg-blue-100 text-blue-800 border-blue-200",
+  events: "bg-green-100 text-green-800 border-green-200",
+  news: "bg-purple-100 text-purple-800 border-purple-200"
 };
 
 const ROLE_LABELS = {
   super_admin: "Super Admin",
-  user_manager: "User Manager",
-  events_manager: "Events Manager",
-  news_manager: "News Manager"
+  user_management: "User Management",
+  events: "Events Management",
+  news: "News Management"
 };
 
 export default function UsersPage() {
-  const { canManageUsers } = usePermissions();
+  const { canManageUsers, permissions, userRoles } = usePermissions();
   const { admin } = useAuth();
+  
+  // Debug logging
+  console.log('🔍 Users Page Debug:', {
+    canManageUsers,
+    permissions,
+    userRoles,
+    adminData: admin
+  });
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +74,9 @@ export default function UsersPage() {
 
     // Role filter
     if (roleFilter !== "all") {
-      filtered = filtered.filter((user) => user.role === roleFilter);
+      filtered = filtered.filter((user) => 
+        user.roles?.includes(roleFilter) || user.role === roleFilter
+      );
     }
 
     // Status filter
@@ -84,8 +92,7 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/users");
-      const result: UsersResponse = await response.json();
+      const result = await getAllUsers();
 
       if (result.success && result.users) {
         setUsers(result.users);
@@ -117,11 +124,7 @@ export default function UsersPage() {
     }
 
     try {
-      const response = await fetch(`/api/users/${userId}`, {
-        method: "DELETE",
-      });
-
-      const result = await response.json();
+      const result = await deleteUser(userId);
 
       if (result.success) {
         await fetchUsers();
@@ -134,19 +137,9 @@ export default function UsersPage() {
     }
   };
 
-  const toggleUserStatus = async (userId: string, currentStatus: boolean) => {
+  const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
     try {
-      const response = await fetch(`/api/users/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          isActive: !currentStatus,
-        }),
-      });
-
-      const result = await response.json();
+      const result = await toggleUserStatus(userId, !currentStatus);
 
       if (result.success) {
         await fetchUsers();
@@ -173,7 +166,51 @@ export default function UsersPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        {/* Header */}
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <div className="flex items-center gap-4">
+                <Image
+                  src="/assets/images/NETI.svg"
+                  alt="NETI Logo"
+                  width={40}
+                  height={40}
+                  className="w-10 h-10"
+                />
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">
+                    NETI Admin Panel
+                  </h1>
+                  <p className="text-sm text-gray-600">
+                    NYK-Fil Maritime E-Training, Inc.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">
+                    {admin?.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {admin?.roles?.join(", ") || admin?.role || "User"}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => window.location.href = '/admin/dashboard'}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                >
+                  <ArrowRight className="w-4 h-4 rotate-180" />
+                  Back to Dashboard
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <motion.div
@@ -234,9 +271,9 @@ export default function UsersPage() {
               >
                 <option value="all">All Roles</option>
                 <option value="super_admin">Super Admin</option>
-                <option value="user_manager">User Manager</option>
-                <option value="events_manager">Events Manager</option>
-                <option value="news_manager">News Manager</option>
+                <option value="user_management">User Management</option>
+                <option value="events">Events Management</option>
+                <option value="news">News Management</option>
               </select>
             </div>
 
@@ -333,13 +370,26 @@ export default function UsersPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${ROLE_COLORS[user.role]}`}>
-                          {ROLE_LABELS[user.role]}
-                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {user.roles && user.roles.length > 0 ? (
+                            user.roles.map((role, index) => (
+                              <span 
+                                key={index}
+                                className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${ROLE_COLORS[role as keyof typeof ROLE_COLORS] || 'bg-gray-100 text-gray-800 border-gray-200'}`}
+                              >
+                                {ROLE_LABELS[role as keyof typeof ROLE_LABELS] || role}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full border bg-gray-100 text-gray-800 border-gray-200">
+                              No roles
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
-                          onClick={() => toggleUserStatus(user.id, user.isActive)}
+                          onClick={() => handleToggleUserStatus(user.id, user.isActive)}
                           className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full border transition-colors ${
                             user.isActive
                               ? "bg-green-100 text-green-800 border-green-200 hover:bg-green-200"

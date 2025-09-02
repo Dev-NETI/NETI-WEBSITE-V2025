@@ -2,12 +2,18 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { 
+  loginToLaravel, 
+  verifyLaravelToken, 
+  logoutFromLaravel 
+} from "@/lib/laravel-auth";
 
 interface Admin {
   id: string;
   email: string;
   name: string;
-  role: string;
+  role?: string; // For backward compatibility - primary role
+  roles?: string[]; // Multiple roles array from Laravel
   createdAt: string;
   updatedAt: string;
   lastLogin?: string;
@@ -37,14 +43,11 @@ export function useAuth(): UseAuthReturn {
     try {
       setState(prev => ({ ...prev, loading: true }));
       
-      const response = await fetch("/api/auth/verify", {
-        method: "GET",
-        credentials: "include",
-      });
-      
-      const result = await response.json();
+      const result = await verifyLaravelToken();
       
       if (result.success && result.admin) {
+        console.log('🔍 Laravel Auth Response:', result);
+        console.log('🔍 Admin Data Received:', result.admin);
         setState({
           admin: result.admin,
           loading: false,
@@ -71,18 +74,10 @@ export function useAuth(): UseAuthReturn {
     try {
       setState(prev => ({ ...prev, loading: true }));
       
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
-      
-      const result = await response.json();
+      const result = await loginToLaravel(email, password);
       
       if (result.success && result.admin) {
+        console.log('🔍 Login Success - Admin Data:', result.admin);
         setState({
           admin: result.admin,
           loading: false,
@@ -110,10 +105,7 @@ export function useAuth(): UseAuthReturn {
 
   const logout = async (): Promise<void> => {
     try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await logoutFromLaravel();
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
