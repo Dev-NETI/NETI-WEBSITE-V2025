@@ -37,32 +37,6 @@ export default function CompanyProfileVideo({
     undefined
   );
 
-  // Generate random values once and store them
-  const randomValues = useRef({
-    organicShapes: Array.from({ length: 4 }, () => ({
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      moveX: Math.random() * 200 - 100,
-      moveY: Math.random() * 200 - 100,
-      delay: Math.random() * 8,
-      duration: 15 + Math.random() * 10,
-    })),
-    dots: Array.from({ length: 12 }, () => ({
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      delay: Math.random() * 4,
-      duration: 4 + Math.random() * 3,
-    })),
-    blobs: Array.from({ length: 3 }, () => ({
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      moveX: Math.random() * 150 - 75,
-      moveY: Math.random() * 150 - 75,
-      delay: Math.random() * 6,
-      duration: 18 + Math.random() * 12,
-    })),
-  });
-
   // Auto-hide controls
   useEffect(() => {
     if (isPlaying) {

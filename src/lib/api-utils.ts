@@ -5,7 +5,7 @@ export interface ApiError {
   message: string;
   status?: number;
   code?: string;
-  details?: any;
+  details?: unknown;
 }
 
 // Logger utility
@@ -13,7 +13,7 @@ export class Logger {
   static log(
     level: "info" | "warn" | "error",
     message: string,
-    data?: any
+    data?: unknown
   ): void {
     if (!config.ENABLE_API_LOGGING && !config.DEBUG_MODE) return;
 
@@ -35,21 +35,21 @@ export class Logger {
     }
   }
 
-  static info(message: string, data?: any): void {
+  static info(message: string, data?: unknown): void {
     this.log("info", message, data);
   }
 
-  static warn(message: string, data?: any): void {
+  static warn(message: string, data?: unknown): void {
     this.log("warn", message, data);
   }
 
-  static error(message: string, data?: any): void {
+  static error(message: string, data?: unknown): void {
     this.log("error", message, data);
   }
 }
 
 // API Request wrapper with timeout and error handling
-export async function apiRequest<T = any>(
+export async function apiRequest<T = unknown>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> {
@@ -114,13 +114,13 @@ export async function apiRequest<T = any>(
 }
 
 // Retry logic for failed requests
-export async function apiRequestWithRetry<T = any>(
+export async function apiRequestWithRetry<T = unknown>(
   url: string,
   options: RequestInit = {},
   maxRetries: number = 3,
   delay: number = 1000
 ): Promise<T> {
-  let lastError: any;
+  let lastError: unknown;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {

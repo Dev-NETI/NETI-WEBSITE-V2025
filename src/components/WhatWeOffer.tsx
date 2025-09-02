@@ -4,7 +4,6 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Anchor,
-  Shield,
   BookOpen,
   TrendingUp,
   Building,
@@ -12,7 +11,6 @@ import {
   Flag,
   X,
   ChevronRight,
-  Award,
   Users,
   CheckCircle,
 } from "lucide-react";

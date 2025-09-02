@@ -79,11 +79,12 @@ export async function loginToLaravel(
     }
 
     return result;
-  } catch (error: any) {
-    Logger.error("Laravel login error", { email, error: error.message });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Network error. Please try again.";
+    Logger.error("Laravel login error", { email, error: errorMessage });
     return {
       success: false,
-      error: error.message || "Network error. Please try again.",
+      error: errorMessage,
     };
   }
 }
@@ -118,12 +119,13 @@ export async function verifyLaravelToken(): Promise<LaravelAuthResponse> {
     }
 
     return result;
-  } catch (error: any) {
-    Logger.error("Laravel verify error", { error: error.message });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Token verification failed";
+    Logger.error("Laravel verify error", { error: errorMessage });
     removeAuthToken();
     return {
       success: false,
-      error: error.message || "Token verification failed",
+      error: errorMessage,
     };
   }
 }
@@ -155,8 +157,9 @@ export async function logoutFromLaravel(): Promise<LaravelAuthResponse> {
     Logger.info("Logout successful");
 
     return result;
-  } catch (error: any) {
-    Logger.error("Laravel logout error", { error: error.message });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Logout error";
+    Logger.error("Laravel logout error", { error: errorMessage });
     removeAuthToken();
     return {
       success: true,
@@ -186,11 +189,12 @@ export async function getProfileFromLaravel(): Promise<LaravelAuthResponse> {
     }
 
     return result;
-  } catch (error: any) {
-    Logger.error("Laravel profile error", { error: error.message });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to get profile";
+    Logger.error("Laravel profile error", { error: errorMessage });
     return {
       success: false,
-      error: error.message || "Failed to get profile",
+      error: errorMessage,
     };
   }
 }
