@@ -67,8 +67,8 @@ export default function EventsPage() {
             },
             credentials: "include",
             body: JSON.stringify({
-              email: "admin1@neti.com.ph",
-              password: "admin123",
+              email: process.env.NEXT_PUBLIC_ADMIN_EMAIL,
+              password: process.env.NEXT_PUBLIC_ADMIN_PASSWORD,
             }),
           }
         );
