@@ -53,13 +53,62 @@ export default function EventsPage() {
     const fetchEvents = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/events");
-        const result: ApiResponse = await response.json();
 
-        if (result.success) {
-          setEvents(result.data);
+        // First authenticate with admin credentials to get events
+        const loginResponse = await fetch(
+          `${
+            process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
+          }/api/admin/login`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+              email: "admin1@neti.com.ph",
+              password: "admin123",
+            }),
+          }
+        );
+
+        const loginData = await loginResponse.json();
+        const token = loginData.token || loginData.access_token;
+
+        if (!token) {
+          throw new Error("No token received from login");
+        }
+
+        // Now fetch events with the token
+        const response = await fetch(
+          `${
+            process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
+          }/api/admin/events`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            credentials: "include",
+          }
+        );
+
+        const result = await response.json();
+
+        // Handle different response structures from Laravel backend
+        const eventsData = result.data || result.events || result;
+
+        if (eventsData && Array.isArray(eventsData)) {
+          // Sort events by start date (earliest first)
+          const sortedEvents = eventsData.sort(
+            (a, b) =>
+              new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+          );
+          setEvents(sortedEvents);
         } else {
-          setError(result.error || "Failed to fetch events");
+          setError("Failed to fetch events - invalid data format");
         }
       } catch (err) {
         console.error("Error fetching events:", err);
@@ -92,12 +141,12 @@ export default function EventsPage() {
 
   const getStatusColor = (status: Event["status"]) => {
     switch (status) {
-      case "registration-open":
+      case "active":
         return "bg-green-100 text-green-800 border-green-200";
-      case "upcoming":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "inactive":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
       case "completed":
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-blue-100 text-blue-800 border-blue-200";
       case "cancelled":
         return "bg-red-100 text-red-800 border-red-200";
       default:
@@ -231,8 +280,8 @@ export default function EventsPage() {
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Status</option>
-                  <option value="registration-open">Registration Open</option>
-                  <option value="upcoming">Upcoming</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
@@ -292,105 +341,188 @@ export default function EventsPage() {
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+              className="grid md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8"
             >
               {filteredEvents.map((event) => (
                 <motion.div
                   key={event.id}
                   variants={itemVariants}
-                  className="group"
+                  whileHover={{ y: -8 }}
+                  className="group h-full"
                 >
-                  <div className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden border border-gray-200 hover:border-blue-200 h-full">
-                    <div className="relative h-48 overflow-hidden">
-                      <Image
-                        src={event.image}
-                        alt={event.title}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-700"
-                      />
-                      <div className="absolute top-4 left-4">
-                        <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                          {event.category}
-                        </span>
+                  <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-blue-300 h-full flex flex-col">
+                    {/* Enhanced Header Section */}
+                    <div className="relative h-56 overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+                      {/* Background Pattern */}
+                      <div className="absolute inset-0 opacity-10">
+                        <div className="absolute top-4 left-4 w-16 h-16 border-2 border-blue-300 rounded-full"></div>
+                        <div className="absolute bottom-6 right-6 w-12 h-12 bg-blue-200 rounded-full"></div>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 border border-indigo-200 rounded-full"></div>
                       </div>
+
+                      {/* Center Icon */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <motion.div
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          transition={{ duration: 0.3 }}
+                          className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 shadow-lg"
+                        >
+                          <Calendar className="w-12 h-12 text-blue-600" />
+                        </motion.div>
+                      </div>
+
+                      {/* Category Badge */}
+                      <div className="absolute top-4 left-4">
+                        <motion.span
+                          whileHover={{ scale: 1.05 }}
+                          className="bg-blue-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm"
+                        >
+                          {event.category}
+                        </motion.span>
+                      </div>
+
+                      {/* Status Badge */}
                       <div className="absolute top-4 right-4">
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(
+                        <motion.span
+                          whileHover={{ scale: 1.05 }}
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm ${getStatusColor(
                             event.status
                           )}`}
                         >
-                          {event.status
-                            .replace("-", " ")
-                            .replace(/\b\w/g, (l) => l.toUpperCase())}
-                        </span>
+                          {event.status.charAt(0).toUpperCase() +
+                            event.status.slice(1)}
+                        </motion.span>
                       </div>
+
+                      {/* Featured Badge */}
+                      {event.featured && (
+                        <div className="absolute bottom-4 left-4">
+                          <motion.span
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            whileHover={{ scale: 1.1 }}
+                            className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg"
+                          >
+                            ⭐ Featured
+                          </motion.span>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="p-6 flex flex-col h-full">
-                      <h3 className="text-xl font-bold text-slate-800 mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">
+                    {/* Content Section */}
+                    <div className="p-6 flex flex-col flex-grow">
+                      {/* Title */}
+                      <motion.h3
+                        whileHover={{ x: 2 }}
+                        className="text-xl font-bold text-slate-800 mb-3 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2 min-h-[3.5rem]"
+                      >
                         {event.title}
-                      </h3>
+                      </motion.h3>
 
-                      <p className="text-gray-600 mb-4 leading-relaxed line-clamp-3 flex-grow">
+                      {/* Description */}
+                      <p className="text-gray-600 mb-6 leading-relaxed text-sm line-clamp-3 flex-grow min-h-[4.5rem]">
                         {event.description}
                       </p>
 
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <Calendar className="w-4 h-4 text-blue-600" />
-                          <span>{formatDate(event.date)}</span>
-                        </div>
+                      {/* Event Details */}
+                      <div className="space-y-3 mb-6">
+                        <motion.div
+                          whileHover={{ x: 2 }}
+                          className="flex items-center gap-3 text-sm text-gray-600 group/item"
+                        >
+                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center group-hover/item:bg-blue-200 transition-colors">
+                            <Calendar className="w-4 h-4 text-blue-600" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-800">
+                              {formatDate(event.startDate)}
+                            </p>
+                            <p className="text-xs text-gray-500">Start Date</p>
+                          </div>
+                        </motion.div>
 
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <Clock className="w-4 h-4 text-blue-600" />
-                          <span>{event.time}</span>
-                        </div>
+                        <motion.div
+                          whileHover={{ x: 2 }}
+                          className="flex items-center gap-3 text-sm text-gray-600 group/item"
+                        >
+                          <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center group-hover/item:bg-purple-200 transition-colors">
+                            <Clock className="w-4 h-4 text-purple-600" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-800">
+                              {event.startDate !== event.endDate
+                                ? "Multi-Day Event"
+                                : "Single Day Event"}
+                            </p>
+                            <p className="text-xs text-gray-500">Duration</p>
+                          </div>
+                        </motion.div>
 
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <MapPin className="w-4 h-4 text-blue-600" />
-                          <span>{event.location}</span>
-                        </div>
-
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <Users className="w-4 h-4 text-blue-600" />
-                          <span>
-                            {event.currentRegistrations || 0}
-                            {event.maxCapacity
-                              ? ` / ${event.maxCapacity}`
-                              : `+ Expected Attendees`}
-                          </span>
-                        </div>
+                        <motion.div
+                          whileHover={{ x: 2 }}
+                          className="flex items-center gap-3 text-sm text-gray-600 group/item"
+                        >
+                          <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center group-hover/item:bg-green-200 transition-colors">
+                            <MapPin className="w-4 h-4 text-green-600" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-800 line-clamp-1">
+                              {event.location}
+                            </p>
+                            <p className="text-xs text-gray-500">Location</p>
+                          </div>
+                        </motion.div>
                       </div>
 
+                      {/* Action Button */}
                       <motion.button
-                        whileHover={{ scale: 1.02 }}
+                        whileHover={{ scale: 1.02, y: -1 }}
                         whileTap={{ scale: 0.98 }}
-                        className={`w-full py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
-                          event.status === "registration-open"
-                            ? "bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800"
-                            : event.status === "upcoming"
-                            ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
-                            : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                        className={`w-full py-4 px-4 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl ${
+                          event.status === "active"
+                            ? "bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white hover:from-green-600 hover:via-green-700 hover:to-emerald-700"
+                            : event.status === "inactive"
+                            ? "bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 text-white hover:from-blue-600 hover:via-blue-700 hover:to-indigo-700"
+                            : event.status === "completed"
+                            ? "bg-gradient-to-r from-gray-400 to-gray-500 text-white cursor-not-allowed"
+                            : "bg-gradient-to-r from-red-400 to-red-500 text-white cursor-not-allowed"
                         }`}
                         disabled={
                           event.status === "completed" ||
                           event.status === "cancelled"
                         }
                       >
-                        {event.status === "registration-open" ? (
+                        {event.status === "active" ? (
                           <>
                             <CheckCircle className="w-4 h-4" />
                             Register Now
+                            <motion.div
+                              whileHover={{ x: 2 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <ArrowRight className="w-4 h-4" />
+                            </motion.div>
                           </>
-                        ) : event.status === "upcoming" ? (
+                        ) : event.status === "inactive" ? (
                           <>
                             Learn More
-                            <ArrowRight className="w-4 h-4" />
+                            <motion.div
+                              whileHover={{ x: 2 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <ArrowRight className="w-4 h-4" />
+                            </motion.div>
                           </>
                         ) : event.status === "completed" ? (
-                          "Event Completed"
+                          <>
+                            <CheckCircle className="w-4 h-4" />
+                            Event Completed
+                          </>
                         ) : (
-                          "Event Cancelled"
+                          <>
+                            <AlertCircle className="w-4 h-4" />
+                            Event Cancelled
+                          </>
                         )}
                       </motion.button>
                     </div>
