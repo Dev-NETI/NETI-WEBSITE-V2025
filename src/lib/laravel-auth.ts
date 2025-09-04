@@ -1,6 +1,5 @@
 // Laravel backend authentication utilities
 import { config } from "./config";
-import { apiRequest, Logger } from "./api-utils";
 
 const LARAVEL_BASE_URL = config.LARAVEL_BASE_URL;
 
@@ -55,33 +54,36 @@ export async function loginToLaravel(
   password: string
 ): Promise<LaravelAuthResponse> {
   try {
-    Logger.info("Attempting Laravel login", { email });
+    console.log("Attempting Laravel login", { email });
 
-    const result: LaravelAuthResponse = await apiRequest(
-      `${LARAVEL_BASE_URL}${config.API_ENDPOINTS.ADMIN_LOGIN}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      }
-    );
+    const response = await fetch(`${LARAVEL_BASE_URL}/api/admin/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const result = await response.json();
 
     if (result.success && result.token) {
       setAuthToken(result.token);
-      Logger.info("Laravel login successful", {
+      console.log("Laravel login successful", {
         email,
         role: result.admin?.role,
       });
+      return result;
     } else {
-      Logger.warn("Laravel login failed", { email, error: result.error });
+      console.warn("Laravel login failed", { email, error: result.error });
+      return {
+        success: false,
+        error: result.error || "Login failed",
+      };
     }
-
-    return result;
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Network error. Please try again.";
-    Logger.error("Laravel login error", { email, error: errorMessage });
+    console.error("Laravel login error", { email, error: errorMessage });
     return {
       success: false,
       error: errorMessage,
@@ -94,34 +96,37 @@ export async function verifyLaravelToken(): Promise<LaravelAuthResponse> {
   try {
     const token = getAuthToken();
     if (!token) {
-      Logger.warn("No authentication token found");
+      console.warn("No authentication token found");
       return {
         success: false,
         error: "No authentication token",
       };
     }
 
-    Logger.info("Verifying Laravel token");
+    console.log("Verifying Laravel token");
 
-    const result: LaravelAuthResponse = await apiRequest(
-      `${LARAVEL_BASE_URL}${config.API_ENDPOINTS.ADMIN_VERIFY}`,
-      {
-        method: "GET",
-        headers: getAuthHeaders(),
-      }
-    );
+    const response = await fetch(`${LARAVEL_BASE_URL}/api/admin/verify`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    const result = await response.json();
 
     if (!result.success) {
       removeAuthToken();
-      Logger.warn("Token verification failed", { error: result.error });
+      console.warn("Token verification failed", { error: result.error });
     } else {
-      Logger.info("Token verification successful", { role: result.admin?.role });
+      console.log("Token verification successful", { role: result.admin?.role });
     }
 
     return result;
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Token verification failed";
-    Logger.error("Laravel verify error", { error: errorMessage });
+    console.error("Laravel verify error", { error: errorMessage });
     removeAuthToken();
     return {
       success: false,
@@ -135,31 +140,34 @@ export async function logoutFromLaravel(): Promise<LaravelAuthResponse> {
   try {
     const token = getAuthToken();
     if (!token) {
-      Logger.info("Already logged out");
+      console.log("Already logged out");
       return {
         success: true,
         message: "Already logged out",
       };
     }
 
-    Logger.info("Logging out from Laravel");
+    console.log("Logging out from Laravel");
 
-    const result: LaravelAuthResponse = await apiRequest(
-      `${LARAVEL_BASE_URL}${config.API_ENDPOINTS.ADMIN_LOGOUT}`,
-      {
-        method: "POST",
-        headers: getAuthHeaders(),
-      }
-    );
+    const response = await fetch(`${LARAVEL_BASE_URL}/api/admin/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    const result = await response.json();
 
     // Always remove token on logout attempt
     removeAuthToken();
-    Logger.info("Logout successful");
+    console.log("Logout successful");
 
     return result;
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Logout error";
-    Logger.error("Laravel logout error", { error: errorMessage });
+    console.error("Laravel logout error", { error: errorMessage });
     removeAuthToken();
     return {
       success: true,

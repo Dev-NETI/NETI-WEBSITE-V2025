@@ -1,32 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Save, AlertCircle, CheckCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import AdminHeader from "@/components/AdminHeader";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { getAuthToken } from "@/lib/laravel-auth";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ToastContainer";
 
-export default function CreateNewsPage() {
+interface EditNewsPageParams {
+  id: string;
+}
+
+export default function EditNewsPage() {
+  const params = useParams() as EditNewsPageParams;
+  const newsId = params.id;
+
   const [formData, setFormData] = useState({
     title: "",
     excerpt: "",
     content: "",
     author: "",
     author_title: "",
-    date: new Date().toISOString().split("T")[0],
+    date: "",
     image: null as File | null,
     status: "published" as "published" | "archived",
   });
 
+  const [currentImage, setCurrentImage] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
 
   const router = useRouter();
   const { admin } = useAuth();
@@ -35,14 +43,82 @@ export default function CreateNewsPage() {
   // Check if user has news management role or super admin role
   const userRoles = admin?.roles || (admin?.role ? [admin.role] : []);
   const canManageNews = userRoles.includes('news_manager') || userRoles.includes('super_admin');
-  
-  console.log('🔍 NEWS CREATE PAGE DEBUG - User Access Check:', {
+
+  console.log('🔍 NEWS EDIT PAGE DEBUG - User Access Check:', {
     admin,
     userRoles,
     canManageNews,
-    hasNewsManager: userRoles.includes('news_manager'),
-    hasSuperAdmin: userRoles.includes('super_admin')
+    newsId,
   });
+
+  // Fetch existing news data
+  useEffect(() => {
+    if (newsId && canManageNews) {
+      fetchNewsData();
+    }
+  }, [newsId, canManageNews]);
+
+  const fetchNewsData = async () => {
+    try {
+      setInitialLoading(true);
+      setError("");
+      console.log("Fetching news data for ID:", newsId);
+
+      // Get authentication token
+      const token = getAuthToken();
+      if (!token) {
+        setError("Authentication token not found. Please login again.");
+        return;
+      }
+
+      const response = await fetch(`/api/laravel/news/${newsId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await response.json();
+      console.log("News fetch result:", result);
+
+      if (result.success && result.data) {
+        const newsData = result.data;
+        
+        // Populate form with existing data
+        setFormData({
+          title: newsData.title || "",
+          excerpt: newsData.excerpt || "",
+          content: newsData.content || "",
+          author: newsData.author || "",
+          author_title: newsData.author_title || "",
+          date: newsData.date ? new Date(newsData.date).toISOString().split('T')[0] : "",
+          image: null, // File input will be empty, but we'll show current image
+          status: newsData.status || "published",
+        });
+
+        // Set current image URL if exists
+        if (newsData.image_url) {
+          setCurrentImage(newsData.image_url);
+        } else if (newsData.image) {
+          setCurrentImage(`${process.env.NEXT_PUBLIC_STORAGE}/news_images/${newsData.image}`);
+        }
+
+        console.log("News data loaded successfully");
+      } else {
+        setError(result.error || "Failed to fetch news article");
+        showError("Loading Failed", result.error || "Failed to fetch news article");
+      }
+    } catch (error) {
+      console.error("Error fetching news data:", error);
+      const errorMessage = "An error occurred while fetching the news article";
+      setError(errorMessage);
+      showError("Error", errorMessage);
+    } finally {
+      setInitialLoading(false);
+    }
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -51,10 +127,7 @@ export default function CreateNewsPage() {
   ) => {
     const { name, value, type } = e.target;
 
-    if (type === "checkbox") {
-      const checked = (e.target as HTMLInputElement).checked;
-      setFormData((prev) => ({ ...prev, [name]: checked }));
-    } else if (type === "file") {
+    if (type === "file") {
       const file = (e.target as HTMLInputElement).files?.[0] || null;
       setFormData((prev) => ({ ...prev, [name]: file }));
     } else {
@@ -75,6 +148,7 @@ export default function CreateNewsPage() {
     for (const field of requiredFields) {
       if (!formData[field as keyof typeof formData]) {
         setError(`Please fill in the ${field.replace("_", " ")} field`);
+        showError("Validation Error", `Please fill in the ${field.replace("_", " ")} field`);
         return false;
       }
     }
@@ -101,7 +175,7 @@ export default function CreateNewsPage() {
       formDataToSend.append("date", formData.date);
       formDataToSend.append("status", formData.status);
       
-
+      // Only append image if a new one was selected
       if (formData.image) {
         formDataToSend.append("image", formData.image);
         console.log("🔍 IMAGE UPLOAD DEBUG:", {
@@ -116,10 +190,12 @@ export default function CreateNewsPage() {
       const token = getAuthToken();
       if (!token) {
         setError("Authentication token not found. Please login again.");
+        showError("Authentication Error", "Please login again.");
         return;
       }
 
-      const response = await fetch("/api/news", {
+      // Use POST with method spoofing for FormData (Laravel best practice)
+      const response = await fetch(`/api/laravel/news/${newsId}`, {
         method: "POST",
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -130,26 +206,14 @@ export default function CreateNewsPage() {
       const result = await response.json();
 
       if (result.success) {
-        console.log("News article created successfully:", result.data);
+        console.log("News article updated successfully:", result.data);
         
         // Show success toast
         showSuccess(
-          "Article Created!",
-          "Your news article has been created successfully.",
+          "Article Updated!",
+          "Your news article has been updated successfully.",
           3000
         );
-
-        // Reset form
-        setFormData({
-          title: "",
-          excerpt: "",
-          content: "",
-          author: "",
-          author_title: "",
-          date: new Date().toISOString().split("T")[0],
-          image: null,
-          status: "published" as "published" | "archived",
-        });
 
         // Redirect to news management page after a brief delay
         setTimeout(() => {
@@ -158,14 +222,14 @@ export default function CreateNewsPage() {
       } else {
         const errorMessage = result.errors
           ? Object.values(result.errors).flat().join(", ")
-          : result.message || "Failed to create news article";
+          : result.message || "Failed to update news article";
         
-        showError("Creation Failed", errorMessage);
-        console.error("Error creating news:", result);
+        showError("Update Failed", errorMessage);
+        console.error("Error updating news:", result);
       }
     } catch (error) {
-      console.error("Error creating news:", error);
-      showError("Error", "An error occurred while creating the news article");
+      console.error("Error updating news:", error);
+      showError("Error", "An error occurred while updating the news article");
     } finally {
       setLoading(false);
     }
@@ -181,7 +245,7 @@ export default function CreateNewsPage() {
               Access Denied
             </h2>
             <p className="text-gray-600">
-              You don&apos;t have permission to create news articles.
+              You don&apos;t have permission to edit news articles.
             </p>
           </div>
         </div>
@@ -189,26 +253,47 @@ export default function CreateNewsPage() {
     );
   }
 
-  if (success) {
+  if (initialLoading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center bg-white p-8 rounded-lg shadow-lg max-w-md"
-          >
-            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Article Created!
-            </h2>
-            <p className="text-gray-600 mb-4">
-              Your news article has been created successfully.
-            </p>
-            <p className="text-sm text-gray-500">
-              Redirecting to news management...
-            </p>
-          </motion.div>
+        <div className="min-h-screen bg-gray-50">
+          <AdminHeader />
+          <main className="pt-20">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <div className="text-center py-12">
+                <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading article...</p>
+              </div>
+            </div>
+          </main>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  if (error && !formData.title) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gray-50">
+          <AdminHeader />
+          <main className="pt-20">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <div className="text-center py-12">
+                <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Failed to Load Article
+                </h2>
+                <p className="text-gray-600 mb-4">{error}</p>
+                <Link
+                  href="/admin/news"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to News
+                </Link>
+              </div>
+            </div>
+          </main>
         </div>
       </ProtectedRoute>
     );
@@ -237,28 +322,14 @@ export default function CreateNewsPage() {
                 </Link>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">
-                    Create News Article
+                    Edit News Article
                   </h1>
                   <p className="text-gray-600 mt-2">
-                    Create a new maritime news article
+                    Update your maritime news article
                   </p>
                 </div>
               </div>
             </motion.div>
-
-            {/* Error Message */}
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6"
-              >
-                <div className="flex items-center">
-                  <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
-                  <span className="text-red-700">{error}</span>
-                </div>
-              </motion.div>
-            )}
 
             {/* Form */}
             <motion.div
@@ -390,6 +461,21 @@ export default function CreateNewsPage() {
                   <label className="block text-sm font-semibold text-gray-900">
                     Featured Image
                   </label>
+                  
+                  {/* Show current image if exists */}
+                  {currentImage && (
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-600 mb-2">Current Image:</p>
+                      <div className="relative inline-block">
+                        <img
+                          src={currentImage}
+                          alt="Current article image"
+                          className="w-32 h-24 object-cover rounded-lg border border-gray-300"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-blue-400 transition-colors">
                     <input
                       type="file"
@@ -399,11 +485,10 @@ export default function CreateNewsPage() {
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />
                     <p className="text-sm text-gray-500 mt-2 text-center">
-                      Choose an eye-catching image for your article • JPEG, PNG, JPG, GIF • Max 2MB
+                      {currentImage ? "Choose a new image to replace the current one" : "Choose an eye-catching image for your article"} • JPEG, PNG, JPG, GIF • Max 2MB
                     </p>
                   </div>
                 </div>
-
 
                 {/* Submit Buttons */}
                 <div className="flex flex-col sm:flex-row justify-end gap-4 pt-8 border-t border-gray-200">
@@ -421,12 +506,12 @@ export default function CreateNewsPage() {
                     {loading ? (
                       <>
                         <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                        Creating Article...
+                        Updating Article...
                       </>
                     ) : (
                       <>
                         <Save className="w-4 h-4" />
-                        Create Article
+                        Update Article
                       </>
                     )}
                   </button>
