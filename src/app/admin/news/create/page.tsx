@@ -2,18 +2,13 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  ArrowLeft,
-  Save,
-  Star,
-  AlertCircle,
-  CheckCircle,
-} from "lucide-react";
-import { usePermissions } from "@/hooks/usePermissions";
+import { ArrowLeft, Save, Star, AlertCircle, CheckCircle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import AdminHeader from "@/components/AdminHeader";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getAuthToken } from "@/lib/laravel-auth";
 
 export default function CreateNewsPage() {
   const [formData, setFormData] = useState({
@@ -27,19 +22,33 @@ export default function CreateNewsPage() {
     featured: false,
     status: "published" as "published" | "archived",
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  
+
   const router = useRouter();
-  const { canManageNews } = usePermissions();
+  const { admin } = useAuth();
+  
+  // Check if user has news management role or super admin role
+  const userRoles = admin?.roles || (admin?.role ? [admin.role] : []);
+  const canManageNews = userRoles.includes('news_manager') || userRoles.includes('super_admin');
+  
+  console.log('🔍 NEWS CREATE PAGE DEBUG - User Access Check:', {
+    admin,
+    userRoles,
+    canManageNews,
+    hasNewsManager: userRoles.includes('news_manager'),
+    hasSuperAdmin: userRoles.includes('super_admin')
+  });
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value, type } = e.target;
-    
+
     if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData((prev) => ({ ...prev, [name]: checked }));
@@ -50,7 +59,6 @@ export default function CreateNewsPage() {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
-
 
   const validateForm = () => {
     const requiredFields = [
@@ -74,51 +82,66 @@ export default function CreateNewsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     try {
       setLoading(true);
       setError("");
-      
+
       // Create form data for file upload
       const formDataToSend = new FormData();
-      formDataToSend.append('title', formData.title);
-      formDataToSend.append('excerpt', formData.excerpt);
-      formDataToSend.append('content', formData.content);
-      formDataToSend.append('author', formData.author);
-      formDataToSend.append('author_title', formData.author_title);
-      formDataToSend.append('date', formData.date);
-      formDataToSend.append('featured', formData.featured.toString());
-      formDataToSend.append('status', formData.status);
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("excerpt", formData.excerpt);
+      formDataToSend.append("content", formData.content);
+      formDataToSend.append("author", formData.author);
+      formDataToSend.append("author_title", formData.author_title);
+      formDataToSend.append("date", formData.date);
+      formDataToSend.append("featured", formData.featured ? "1" : "0");
+      formDataToSend.append("status", formData.status);
       
+
       if (formData.image) {
-        formDataToSend.append('image', formData.image);
+        formDataToSend.append("image", formData.image);
+        console.log("🔍 IMAGE UPLOAD DEBUG:", {
+          fileName: formData.image.name,
+          fileSize: formData.image.size,
+          fileType: formData.image.type,
+          storagePath: "storage/app/public/news_images"
+        });
       }
-      
-      const response = await fetch('http://localhost:8000/api/news', {
-        method: 'POST',
+
+      // Get Laravel Sanctum token
+      const token = getAuthToken();
+      if (!token) {
+        setError("Authentication token not found. Please login again.");
+        return;
+      }
+
+      const response = await fetch("/api/news", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${document.cookie
-            .split('; ')
-            .find(row => row.startsWith('admin-token='))
-            ?.split('=')[1] || ''}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: formDataToSend,
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         console.log("News article created successfully:", result.data);
         setSuccess(true);
-        
+
         // Redirect to news management page after a brief delay
         setTimeout(() => {
           router.push("/admin/news");
         }, 2000);
       } else {
-        setError(result.errors ? Object.values(result.errors).flat().join(', ') : result.message || "Failed to create news article");
+        setError(
+          result.errors
+            ? Object.values(result.errors).flat().join(", ")
+            : result.message || "Failed to create news article"
+        );
         console.error("Error creating news:", result);
       }
     } catch (error) {
@@ -129,15 +152,18 @@ export default function CreateNewsPage() {
     }
   };
 
-
   if (!canManageNews) {
     return (
       <ProtectedRoute>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-            <p className="text-gray-600">You don&apos;t have permission to create news articles.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Access Denied
+            </h2>
+            <p className="text-gray-600">
+              You don&apos;t have permission to create news articles.
+            </p>
           </div>
         </div>
       </ProtectedRoute>
@@ -146,7 +172,7 @@ export default function CreateNewsPage() {
 
   if (success) {
     return (
-      <ProtectedRoute >
+      <ProtectedRoute>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -154,9 +180,15 @@ export default function CreateNewsPage() {
             className="text-center bg-white p-8 rounded-lg shadow-lg max-w-md"
           >
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Article Created!</h2>
-            <p className="text-gray-600 mb-4">Your news article has been created successfully.</p>
-            <p className="text-sm text-gray-500">Redirecting to news management...</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Article Created!
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Your news article has been created successfully.
+            </p>
+            <p className="text-sm text-gray-500">
+              Redirecting to news management...
+            </p>
           </motion.div>
         </div>
       </ProtectedRoute>
@@ -164,10 +196,10 @@ export default function CreateNewsPage() {
   }
 
   return (
-    <ProtectedRoute >
+    <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
         <AdminHeader />
-        
+
         <main className="pt-20">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Header */}
@@ -184,8 +216,12 @@ export default function CreateNewsPage() {
                   <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </Link>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Create News Article</h1>
-                  <p className="text-gray-600 mt-2">Create a new maritime news article</p>
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    Create News Article
+                  </h1>
+                  <p className="text-gray-600 mt-2">
+                    Create a new maritime news article
+                  </p>
                 </div>
               </div>
             </motion.div>
@@ -335,9 +371,10 @@ export default function CreateNewsPage() {
                     accept="image/*"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
-                  <p className="text-sm text-gray-500 mt-1">Upload an image file (JPEG, PNG, JPG, GIF) - max 2MB</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Upload an image file (JPEG, PNG, JPG, GIF) - max 2MB
+                  </p>
                 </div>
-
 
                 {/* Featured */}
                 <div>

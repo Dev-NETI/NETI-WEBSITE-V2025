@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
@@ -12,7 +12,6 @@ import {
   LogOut,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { usePermissions } from "@/hooks/usePermissions";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Image from "next/image";
 
@@ -37,7 +36,6 @@ interface QuickAction {
 export default function AdminDashboard() {
   const router = useRouter();
   const { admin, logout } = useAuth();
-  const { userRole, permissions } = usePermissions();
 
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
@@ -75,7 +73,7 @@ export default function AdminDashboard() {
 
   const quickActions: QuickAction[] = [
     {
-      title: "Manage Users",
+      title: "User Management",
       description: "Create, edit, and manage system users",
       icon: <Users className="w-6 h-6" />,
       href: "/admin/users",
@@ -83,7 +81,7 @@ export default function AdminDashboard() {
       permission: "users",
     },
     {
-      title: "Manage Events",
+      title: "Events Management",
       description: "Create and manage training events",
       icon: <Calendar className="w-6 h-6" />,
       href: "/admin/events",
@@ -91,7 +89,7 @@ export default function AdminDashboard() {
       permission: "events",
     },
     {
-      title: "Manage News",
+      title: "News Management",
       description: "Create and manage news articles",
       icon: <Newspaper className="w-6 h-6" />,
       href: "/admin/news",
@@ -100,9 +98,60 @@ export default function AdminDashboard() {
     },
   ];
 
-  const filteredActions = quickActions.filter(
-    (action) => !action.permission || permissions.includes(action.permission)
-  );
+  // Get user's roles from Laravel Sanctum auth (from UserRole model)
+  // Use roles array if available, fallback to single role for backward compatibility
+  const userRoles = admin?.roles || (admin?.role ? [admin.role] : []);
+  
+  console.log('🔍 DASHBOARD DEBUG - Laravel Auth Data:', {
+    admin,
+    userRoles,
+    hasRoles: userRoles.length > 0,
+    adminStringified: JSON.stringify(admin, null, 2)
+  });
+
+  // Role to action mapping - each role manages their specific area
+  const ROLE_TO_ACTIONS: Record<string, string[]> = {
+    user_manager: ['users'],           // User Management role sees only users
+    events_manager: ['events'],        // Events Management role sees only events
+    news_manager: ['news'],            // News Management role sees only news
+    super_admin: ['users', 'events', 'news'], // Super admin sees everything
+  };
+
+  // Filter actions based on user's Laravel Sanctum roles (from UserRole model)
+  const filteredActions = quickActions.filter((action) => {
+    // If no permission required, show to everyone
+    if (!action.permission) return true;
+    
+    // If no user roles, show nothing
+    if (!userRoles || userRoles.length === 0) return false;
+    
+    // Check if ANY of the user's roles allows this action
+    const allowedByAnyRole = userRoles.some(role => {
+      const allowedActions = ROLE_TO_ACTIONS[role] || [];
+      return allowedActions.includes(action.permission);
+    });
+    
+    console.log(`🔍 Checking action "${action.title}":`, {
+      userRoles,
+      permission: action.permission,
+      allowedByAnyRole,
+      rolePermissions: userRoles.map(role => ({
+        role,
+        actions: ROLE_TO_ACTIONS[role] || []
+      }))
+    });
+    
+    return allowedByAnyRole;
+  });
+
+  // Debug logging
+  console.log('🔍 Dashboard Debug:', {
+    adminData: admin,
+    userRoles,
+    filteredActionsCount: filteredActions.length,
+    filteredActions: filteredActions.map(a => a.title),
+    allRoleActions: userRoles.flatMap(role => ROLE_TO_ACTIONS[role] || [])
+  });
 
   const handleLogout = async () => {
     await logout();
@@ -120,7 +169,7 @@ export default function AdminDashboard() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
         {/* Header */}
-        <div className="bg-white shadow-sm border-b">
+        <div className="bg-white shadow-md">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <div className="flex items-center gap-4">
@@ -147,7 +196,7 @@ export default function AdminDashboard() {
                     {admin.name}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">
-                    {userRole?.replace("_", " ")}
+                    {userRoles.length > 0 ? userRoles.join(", ").replace(/_/g, " ") : "No roles"}
                   </p>
                 </div>
 

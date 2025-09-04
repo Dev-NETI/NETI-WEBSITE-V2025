@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
@@ -14,37 +14,37 @@ import {
   ArrowLeft,
   Save,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  ArrowRight,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import type { UserRole } from "@/lib/user";
+import type { UserRole, CreateUserData, Role } from "@/lib/laravel-user";
+import { createUser, getRoles } from "@/lib/laravel-user";
+import Image from "next/image";
 
-const ROLE_OPTIONS = [
-  { value: "user_manager", label: "User Manager", description: "Can manage system users" },
-  { value: "events_manager", label: "Events Manager", description: "Can manage events and registrations" },
-  { value: "news_manager", label: "News Manager", description: "Can manage news and announcements" },
-  { value: "super_admin", label: "Super Administrator", description: "Full system access" }
-];
+// Removed hardcoded roles - will fetch from API
 
-interface CreateUserData {
+interface CreateUserFormData {
   name: string;
   email: string;
   password: string;
   confirmPassword: string;
-  role: UserRole;
+  roles: string[];
 }
 
 export default function CreateUserPage() {
   const router = useRouter();
   const { canManageUsers, isSuperAdmin } = usePermissions();
+  const { admin } = useAuth();
   
-  const [formData, setFormData] = useState<CreateUserData>({
+  const [formData, setFormData] = useState<CreateUserFormData>({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
-    role: "events_manager"
+    roles: []
   });
   
   const [showPassword, setShowPassword] = useState(false);
@@ -53,32 +53,77 @@ export default function CreateUserPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
+  const [loadingRoles, setLoadingRoles] = useState(true);
+
+  // Fetch available roles on component mount
+  useEffect(() => {
+    const fetchAvailableRoles = async () => {
+      try {
+        const result = await getRoles();
+        if (result.success && result.roles) {
+          setAvailableRoles(result.roles);
+        } else {
+          setError("Failed to fetch available roles");
+        }
+      } catch (err) {
+        console.error("Error fetching roles:", err);
+        setError("Failed to fetch available roles");
+      } finally {
+        setLoadingRoles(false);
+      }
+    };
+
+    fetchAvailableRoles();
+  }, []);
+
+  // Helper function to get role by name
+  const getRoleByName = (roleName: string): Role | undefined => {
+    return availableRoles.find(role => role.name === roleName);
+  };
 
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
     
+    // Name validation - required, string, max 255 chars (matching backend)
     if (!formData.name.trim()) {
       errors.name = "Name is required";
+    } else if (formData.name.trim().length > 255) {
+      errors.name = "Name must not exceed 255 characters";
     }
     
+    // Email validation - required, email format, max 255 chars, unique (backend will check unique)
     if (!formData.email.trim()) {
       errors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = "Invalid email format";
+    } else if (formData.email.trim().length > 255) {
+      errors.email = "Email must not exceed 255 characters";
     }
     
+    // Password validation - required, min 6 chars (matching backend)
     if (!formData.password) {
       errors.password = "Password is required";
     } else if (formData.password.length < 6) {
       errors.password = "Password must be at least 6 characters";
     }
     
+    // Confirm password validation
     if (formData.password !== formData.confirmPassword) {
       errors.confirmPassword = "Passwords do not match";
     }
     
-    if (!formData.role) {
-      errors.role = "Role is required";
+    // Roles validation - required array with min 1 item, each role must exist (backend will validate exists)
+    if (!formData.roles || formData.roles.length === 0) {
+      errors.roles = "At least one role is required";
+    } else {
+      // Validate that selected roles exist in available roles
+      const invalidRoles = formData.roles.filter(
+        roleName => !availableRoles.find(role => role.name === roleName)
+      );
+      if (invalidRoles.length > 0) {
+        errors.roles = "Selected role is not available";
+      }
     }
 
     setValidationErrors(errors);
@@ -98,6 +143,33 @@ export default function CreateUserPage() {
     if (error) setError("");
   };
 
+  const handleRoleChange = (roleName: string, isChecked: boolean) => {
+    setFormData(prev => {
+      const currentRoles = [...prev.roles];
+      if (isChecked) {
+        // Add role if not already present
+        if (!currentRoles.includes(roleName)) {
+          currentRoles.push(roleName);
+        }
+      } else {
+        // Remove role
+        const index = currentRoles.indexOf(roleName);
+        if (index > -1) {
+          currentRoles.splice(index, 1);
+        }
+      }
+      return { ...prev, roles: currentRoles };
+    });
+    
+    // Clear validation error for roles field
+    if (validationErrors.roles) {
+      setValidationErrors(prev => ({ ...prev, roles: "" }));
+    }
+    
+    // Clear general error
+    if (error) setError("");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -109,20 +181,14 @@ export default function CreateUserPage() {
     setError("");
     
     try {
-      const response = await fetch("/api/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name.trim(),
-          email: formData.email.trim().toLowerCase(),
-          password: formData.password,
-          role: formData.role
-        }),
-      });
-      
-      const result = await response.json();
+      const userData: CreateUserData = {
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+        roles: formData.roles
+      };
+
+      const result = await createUser(userData);
       
       if (result.success) {
         setSuccess(true);
@@ -154,8 +220,52 @@ export default function CreateUserPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        {/* Header */}
+        <div className="bg-white shadow-md">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <div className="flex items-center gap-4">
+                <Image
+                  src="/assets/images/NETI.svg"
+                  alt="NETI Logo"
+                  width={40}
+                  height={40}
+                  className="w-10 h-10"
+                />
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">
+                    NETI Admin Panel
+                  </h1>
+                  <p className="text-sm text-gray-600">
+                    NYK-Fil Maritime E-Training, Inc.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">
+                    {admin?.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {admin?.roles?.join(", ") || admin?.role || "User"}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => router.push("/admin/users")}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                >
+                  <ArrowRight className="w-4 h-4 rotate-180" />
+                  Back to Users
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -186,7 +296,7 @@ export default function CreateUserPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-xl shadow-sm border"
+          className="bg-white rounded-xl shadow-md"
         >
           <div className="p-6">
             {success && (
@@ -208,6 +318,21 @@ export default function CreateUserPage() {
               >
                 <AlertCircle className="w-5 h-5" />
                 <span>{error}</span>
+              </motion.div>
+            )}
+
+            {loadingRoles && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 flex items-center gap-2"
+              >
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full"
+                />
+                <span>Loading available roles...</span>
               </motion.div>
             )}
 
@@ -324,43 +449,116 @@ export default function CreateUserPage() {
 
               {/* Role Field */}
               <div>
-                <label htmlFor="role" className="block text-sm font-semibold text-gray-700 mb-2">
-                  User Role
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    User Roles (Select one or more)
+                  </div>
                 </label>
-                <div className="relative">
-                  <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <select
-                    id="role"
-                    name="role"
-                    value={formData.role}
-                    onChange={handleInputChange}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none ${
-                      validationErrors.role ? "border-red-300" : "border-gray-300"
-                    }`}
-                  >
-                    {ROLE_OPTIONS.map((option) => {
-                      // Only super admins can create other super admins
-                      if (option.value === "super_admin" && !isSuperAdmin) {
-                        return null;
-                      }
-                      return (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-                {validationErrors.role && (
-                  <p className="mt-1 text-sm text-red-600">{validationErrors.role}</p>
+                
+                {loadingRoles ? (
+                  <div className="flex items-center justify-center py-8 text-gray-500">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full mr-2"
+                    />
+                    Loading available roles...
+                  </div>
+                ) : (
+                  <div className={`space-y-3 p-4 border rounded-lg ${
+                    validationErrors.roles ? "border-red-300 bg-red-50" : "border-gray-300 bg-gray-50"
+                  }`}>
+                    {availableRoles.length === 0 ? (
+                      <p className="text-gray-500 text-center py-4">No roles available</p>
+                    ) : (
+                      availableRoles.map((role) => {
+                        // Only super admins can assign other super admins
+                        if (role.name === "super_admin" && !isSuperAdmin) {
+                          return null;
+                        }
+                        
+                        const isChecked = formData.roles.includes(role.name);
+                        
+                        return (
+                          <motion.div
+                            key={role.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`relative p-4 border rounded-lg transition-all cursor-pointer ${
+                              isChecked 
+                                ? "border-blue-300 bg-blue-50 shadow-sm" 
+                                : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                            }`}
+                            onClick={() => handleRoleChange(role.name, !isChecked)}
+                          >
+                            <div className="flex items-start gap-3">
+                              <input
+                                type="checkbox"
+                                id={`role-${role.id}`}
+                                checked={isChecked}
+                                onChange={(e) => handleRoleChange(role.name, e.target.checked)}
+                                className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <label 
+                                  htmlFor={`role-${role.id}`}
+                                  className="cursor-pointer"
+                                >
+                                  <div className="font-medium text-gray-900 mb-1">
+                                    {role.display_name}
+                                  </div>
+                                  {role.description && (
+                                    <div className="text-sm text-gray-600">
+                                      {role.description}
+                                    </div>
+                                  )}
+                                </label>
+                              </div>
+                            </div>
+                            
+                            {isChecked && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="absolute top-2 right-2 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center"
+                              >
+                                <CheckCircle className="w-4 h-4 text-white" />
+                              </motion.div>
+                            )}
+                          </motion.div>
+                        );
+                      })
+                    )}
+                  </div>
                 )}
                 
-                {/* Role Description */}
-                {formData.role && (
-                  <div className="mt-2 p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600">
-                      {ROLE_OPTIONS.find(option => option.value === formData.role)?.description}
-                    </p>
+                {validationErrors.roles && (
+                  <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {validationErrors.roles}
+                  </p>
+                )}
+                
+                {/* Selected Roles Summary */}
+                {formData.roles.length > 0 && (
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="text-sm font-medium text-blue-800 mb-2">
+                      Selected Roles ({formData.roles.length}):
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.roles.map((roleName) => {
+                        const role = getRoleByName(roleName);
+                        return (
+                          <span
+                            key={roleName}
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full border border-blue-200"
+                          >
+                            {role?.display_name || roleName}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
@@ -368,11 +566,11 @@ export default function CreateUserPage() {
               {/* Submit Button */}
               <motion.button
                 type="submit"
-                disabled={loading || success}
-                whileHover={{ scale: loading || success ? 1 : 1.02 }}
-                whileTap={{ scale: loading || success ? 1 : 0.98 }}
+                disabled={loading || success || loadingRoles}
+                whileHover={{ scale: loading || success || loadingRoles ? 1 : 1.02 }}
+                whileTap={{ scale: loading || success || loadingRoles ? 1 : 0.98 }}
                 className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-all duration-300 flex items-center justify-center gap-2 ${
-                  loading || success
+                  loading || success || loadingRoles
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-blue-600 hover:bg-blue-700"
                 }`}
