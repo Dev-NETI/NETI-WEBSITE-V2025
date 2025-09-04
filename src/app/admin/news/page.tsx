@@ -6,12 +6,9 @@ import {
   Plus,
   Search,
   Edit,
-  Trash2,
   Eye,
   Calendar,
   User,
-  Tag,
-  Star,
   CheckCircle,
   AlertCircle,
   Archive,
@@ -158,42 +155,6 @@ export default function AdminNewsPage() {
     }
   };
 
-  const handleStatusUpdate = async (newsId: string, newStatus: string) => {
-    try {
-      console.log("Updating news status:", newsId, newStatus);
-
-      // Get authentication token for Laravel backend
-      const token = getAuthToken();
-      if (!token) {
-        setError("Authentication token not found. Please login again.");
-        return;
-      }
-
-      const response = await fetch(`/api/laravel/news/${newsId}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        console.log("News status updated successfully");
-        await fetchNews(); // Refresh the list
-      } else {
-        setError(result.error || "Failed to update news status");
-        console.error("Error updating news status:", result.error);
-      }
-    } catch (error) {
-      console.error("Error updating news status:", error);
-      setError("An error occurred while updating the news status");
-    }
-  };
-
   const handleReactivateNews = async (newsItem: LaravelNewsArticle) => {
     try {
       setLoading(true);
@@ -206,14 +167,17 @@ export default function AdminNewsPage() {
         return;
       }
 
-      const response = await fetch(`/api/laravel/news/${newsItem.id}/reactivate`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `/api/laravel/news/${newsItem.id}/reactivate`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       const result = await response.json();
 
@@ -655,8 +619,7 @@ export default function AdminNewsPage() {
                     <span className="font-medium">
                       {Math.min(endIndex, totalItems)}
                     </span>{" "}
-                    of{" "}
-                    <span className="font-medium">{totalItems}</span>{" "}
+                    of <span className="font-medium">{totalItems}</span>{" "}
                     {totalItems === 1 ? "result" : "results"}
                   </div>
 
@@ -664,7 +627,9 @@ export default function AdminNewsPage() {
                   <div className="flex items-center gap-2">
                     {/* Previous Button */}
                     <button
-                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      onClick={() =>
+                        setCurrentPage(Math.max(1, currentPage - 1))
+                      }
                       disabled={currentPage === 1}
                       className="inline-flex items-center gap-1 px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                     >
@@ -686,9 +651,12 @@ export default function AdminNewsPage() {
                         .map((page, index, filteredPages) => (
                           <React.Fragment key={page}>
                             {/* Add ellipsis if there's a gap */}
-                            {index > 0 && filteredPages[index - 1] < page - 1 && (
-                              <span className="px-2 py-1 text-gray-500">...</span>
-                            )}
+                            {index > 0 &&
+                              filteredPages[index - 1] < page - 1 && (
+                                <span className="px-2 py-1 text-gray-500">
+                                  ...
+                                </span>
+                              )}
                             <button
                               onClick={() => setCurrentPage(page)}
                               className={`px-3 py-2 text-sm rounded-md transition-colors ${

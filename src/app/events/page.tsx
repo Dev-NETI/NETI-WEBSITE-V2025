@@ -6,7 +6,6 @@ import Navigation from "../../components/Navigation";
 import {
   Calendar,
   MapPin,
-  Users,
   Clock,
   Filter,
   Search,
@@ -14,15 +13,7 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
-import Image from "next/image";
 import { Event } from "@/lib/database";
-
-interface ApiResponse {
-  success: boolean;
-  data: Event[];
-  count: number;
-  error?: string;
-}
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -141,9 +132,9 @@ export default function EventsPage() {
 
   const getStatusColor = (status: Event["status"]) => {
     switch (status) {
-      case "active":
+      case "registration-open":
         return "bg-green-100 text-green-800 border-green-200";
-      case "inactive":
+      case "upcoming":
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
       case "completed":
         return "bg-blue-100 text-blue-800 border-blue-200";
@@ -280,8 +271,8 @@ export default function EventsPage() {
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                  <option value="registration-open">Registration Open</option>
+                  <option value="upcoming">Upcoming</option>
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
@@ -389,24 +380,13 @@ export default function EventsPage() {
                             event.status
                           )}`}
                         >
-                          {event.status.charAt(0).toUpperCase() +
-                            event.status.slice(1)}
+                          {event.status
+                            .replace("-", " ")
+                            .replace(/\b\w/g, (c) => c.toUpperCase())}
                         </motion.span>
                       </div>
 
-                      {/* Featured Badge */}
-                      {event.featured && (
-                        <div className="absolute bottom-4 left-4">
-                          <motion.span
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            whileHover={{ scale: 1.1 }}
-                            className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg"
-                          >
-                            ⭐ Featured
-                          </motion.span>
-                        </div>
-                      )}
+                      {/* Featured Badge removed: not part of Event interface */}
                     </div>
 
                     {/* Content Section */}
@@ -435,9 +415,9 @@ export default function EventsPage() {
                           </div>
                           <div className="flex-1">
                             <p className="font-medium text-gray-800">
-                              {formatDate(event.startDate)}
+                              {formatDate(event.date)}
                             </p>
-                            <p className="text-xs text-gray-500">Start Date</p>
+                            <p className="text-xs text-gray-500">Date</p>
                           </div>
                         </motion.div>
 
@@ -450,11 +430,9 @@ export default function EventsPage() {
                           </div>
                           <div className="flex-1">
                             <p className="font-medium text-gray-800">
-                              {event.startDate !== event.endDate
-                                ? "Multi-Day Event"
-                                : "Single Day Event"}
+                              {event.time}
                             </p>
-                            <p className="text-xs text-gray-500">Duration</p>
+                            <p className="text-xs text-gray-500">Time</p>
                           </div>
                         </motion.div>
 
@@ -479,9 +457,9 @@ export default function EventsPage() {
                         whileHover={{ scale: 1.02, y: -1 }}
                         whileTap={{ scale: 0.98 }}
                         className={`w-full py-4 px-4 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl ${
-                          event.status === "active"
+                          event.status === "registration-open"
                             ? "bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white hover:from-green-600 hover:via-green-700 hover:to-emerald-700"
-                            : event.status === "inactive"
+                            : event.status === "upcoming"
                             ? "bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 text-white hover:from-blue-600 hover:via-blue-700 hover:to-indigo-700"
                             : event.status === "completed"
                             ? "bg-gradient-to-r from-gray-400 to-gray-500 text-white cursor-not-allowed"
@@ -492,7 +470,7 @@ export default function EventsPage() {
                           event.status === "cancelled"
                         }
                       >
-                        {event.status === "active" ? (
+                        {event.status === "registration-open" ? (
                           <>
                             <CheckCircle className="w-4 h-4" />
                             Register Now
@@ -503,7 +481,7 @@ export default function EventsPage() {
                               <ArrowRight className="w-4 h-4" />
                             </motion.div>
                           </>
-                        ) : event.status === "inactive" ? (
+                        ) : event.status === "upcoming" ? (
                           <>
                             Learn More
                             <motion.div

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { CheckCircle, AlertCircle, X, Info } from "lucide-react";
 import { useEffect } from "react";
 
@@ -13,7 +13,14 @@ export interface ToastProps {
   onClose: (id: string) => void;
 }
 
-const Toast = ({ id, type, title, message, duration = 5000, onClose }: ToastProps) => {
+const Toast = ({
+  id,
+  type,
+  title,
+  message,
+  duration = 5000,
+  onClose,
+}: ToastProps) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose(id);
@@ -73,7 +80,10 @@ const Toast = ({ id, type, title, message, duration = 5000, onClose }: ToastProp
         <div className="ml-3 w-0 flex-1">
           <p className={`text-sm font-medium ${getTextColor()}`}>{title}</p>
           {message && (
-            <p className={`mt-1 text-sm ${getTextColor()}`} style={{ opacity: 0.8 }}>
+            <p
+              className={`mt-1 text-sm ${getTextColor()}`}
+              style={{ opacity: 0.8 }}
+            >
               {message}
             </p>
           )}

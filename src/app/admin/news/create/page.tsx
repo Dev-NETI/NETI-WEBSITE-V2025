@@ -30,18 +30,24 @@ export default function CreateNewsPage() {
 
   const router = useRouter();
   const { admin } = useAuth();
-  const { toasts, success: showSuccess, error: showError, removeToast } = useToast();
-  
+  const {
+    toasts,
+    success: showSuccess,
+    error: showError,
+    removeToast,
+  } = useToast();
+
   // Check if user has news management role or super admin role
   const userRoles = admin?.roles || (admin?.role ? [admin.role] : []);
-  const canManageNews = userRoles.includes('news_manager') || userRoles.includes('super_admin');
-  
-  console.log('🔍 NEWS CREATE PAGE DEBUG - User Access Check:', {
+  const canManageNews =
+    userRoles.includes("news_manager") || userRoles.includes("super_admin");
+
+  console.log("🔍 NEWS CREATE PAGE DEBUG - User Access Check:", {
     admin,
     userRoles,
     canManageNews,
-    hasNewsManager: userRoles.includes('news_manager'),
-    hasSuperAdmin: userRoles.includes('super_admin')
+    hasNewsManager: userRoles.includes("news_manager"),
+    hasSuperAdmin: userRoles.includes("super_admin"),
   });
 
   const handleInputChange = (
@@ -100,7 +106,6 @@ export default function CreateNewsPage() {
       formDataToSend.append("author_title", formData.author_title);
       formDataToSend.append("date", formData.date);
       formDataToSend.append("status", formData.status);
-      
 
       if (formData.image) {
         formDataToSend.append("image", formData.image);
@@ -108,7 +113,7 @@ export default function CreateNewsPage() {
           fileName: formData.image.name,
           fileSize: formData.image.size,
           fileType: formData.image.type,
-          storagePath: "storage/app/public/news_images"
+          storagePath: "storage/app/public/news_images",
         });
       }
 
@@ -122,7 +127,7 @@ export default function CreateNewsPage() {
       const response = await fetch("/api/news", {
         method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: formDataToSend,
       });
@@ -131,7 +136,7 @@ export default function CreateNewsPage() {
 
       if (result.success) {
         console.log("News article created successfully:", result.data);
-        
+
         // Show success toast
         showSuccess(
           "Article Created!",
@@ -159,7 +164,7 @@ export default function CreateNewsPage() {
         const errorMessage = result.errors
           ? Object.values(result.errors).flat().join(", ")
           : result.message || "Failed to create news article";
-        
+
         showError("Creation Failed", errorMessage);
         console.error("Error creating news:", result);
       }
@@ -298,7 +303,9 @@ export default function CreateNewsPage() {
                     placeholder="Write a brief, engaging description of the article..."
                     required
                   />
-                  <p className="text-xs text-gray-500">This will appear as the preview text for your article</p>
+                  <p className="text-xs text-gray-500">
+                    This will appear as the preview text for your article
+                  </p>
                 </div>
 
                 {/* Content */}
@@ -315,7 +322,9 @@ export default function CreateNewsPage() {
                     placeholder="Write your article content here..."
                     required
                   />
-                  <p className="text-xs text-gray-500">You can resize this field vertically for more writing space</p>
+                  <p className="text-xs text-gray-500">
+                    You can resize this field vertically for more writing space
+                  </p>
                 </div>
 
                 {/* Status */}
@@ -329,14 +338,20 @@ export default function CreateNewsPage() {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                   >
-                    <option value="published">Published - Make article visible to readers</option>
-                    <option value="archived">Archived - Hide from public view</option>
+                    <option value="published">
+                      Published - Make article visible to readers
+                    </option>
+                    <option value="archived">
+                      Archived - Hide from public view
+                    </option>
                   </select>
                 </div>
 
                 {/* Author Information */}
                 <div className="bg-gray-50 rounded-xl p-6 space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Author Information</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Author Information
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-gray-900">
@@ -382,7 +397,9 @@ export default function CreateNewsPage() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                     required
                   />
-                  <p className="text-xs text-gray-500">When should this article be published?</p>
+                  <p className="text-xs text-gray-500">
+                    When should this article be published?
+                  </p>
                 </div>
 
                 {/* Image */}
@@ -399,11 +416,11 @@ export default function CreateNewsPage() {
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />
                     <p className="text-sm text-gray-500 mt-2 text-center">
-                      Choose an eye-catching image for your article • JPEG, PNG, JPG, GIF • Max 2MB
+                      Choose an eye-catching image for your article • JPEG, PNG,
+                      JPG, GIF • Max 2MB
                     </p>
                   </div>
                 </div>
-
 
                 {/* Submit Buttons */}
                 <div className="flex flex-col sm:flex-row justify-end gap-4 pt-8 border-t border-gray-200">

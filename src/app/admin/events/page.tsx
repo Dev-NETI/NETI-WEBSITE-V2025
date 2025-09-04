@@ -16,11 +16,23 @@ import {
 } from "lucide-react";
 import axios from "axios";
 
-interface ApiResponse {
-  success: boolean;
-  data: Event[];
-  count: number;
-  error?: string;
+type EventStatus = "active" | "inactive" | "completed" | "cancelled";
+
+interface AdminEvent {
+  id: string;
+  title: string;
+  category?: string;
+  content?: string;
+  description: string;
+  featured?: boolean;
+  location?: string;
+  startDate?: string;
+  endDate?: string;
+  status: EventStatus;
+  date?: string;
+  time?: string;
+  currentRegistrations?: number;
+  maxCapacity?: number;
 }
 
 interface FormData {
@@ -32,17 +44,17 @@ interface FormData {
   location: string;
   startDate: string;
   endDate: string;
-  status: Event["status"];
+  status: EventStatus;
 }
 
 export default function EventsAdminPage() {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<AdminEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showModal, setShowModal] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [editingEvent, setEditingEvent] = useState<AdminEvent | null>(null);
   const [formData, setFormData] = useState<FormData>({
     title: "",
     category: "",
@@ -175,14 +187,21 @@ export default function EventsAdminPage() {
       setShowModal(false);
       setEditingEvent(null);
       resetForm();
-    } catch (err) {
-      console.error("Error saving event:", err);
-      // Show more detailed error information if available
-      if (err.response?.data?.message) {
-        setError(`Failed to save event: ${err.response.data.message}`);
-      } else if (err.response?.data?.errors) {
-        const errorMessages = Object.values(err.response.data.errors).flat();
-        setError(`Validation errors: ${errorMessages.join(", ")}`);
+    } catch (error: unknown) {
+      console.error("Error saving event:", error);
+      if (axios.isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message as string | undefined;
+        const apiErrors = error.response?.data?.errors as
+          | Record<string, string[]>
+          | undefined;
+        if (apiMessage) {
+          setError(`Failed to save event: ${apiMessage}`);
+        } else if (apiErrors) {
+          const errorMessages = Object.values(apiErrors).flat();
+          setError(`Validation errors: ${errorMessages.join(", ")}`);
+        } else {
+          setError("Failed to save event");
+        }
       } else {
         setError("Failed to save event");
       }
@@ -213,8 +232,8 @@ export default function EventsAdminPage() {
       );
 
       await fetchEvents(); // Refresh the list
-    } catch (err) {
-      console.error("Error deleting event:", err);
+    } catch (error: unknown) {
+      console.error("Error deleting event:", error);
       setError("Failed to delete event");
     }
   };
@@ -235,7 +254,7 @@ export default function EventsAdminPage() {
   };
 
   // Open edit modal
-  const openEditModal = (event: Event) => {
+  const openEditModal = (event: AdminEvent) => {
     setEditingEvent(event);
     setFormData({
       title: event.title || "",
@@ -268,7 +287,7 @@ export default function EventsAdminPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusColor = (status: Event["status"]) => {
+  const getStatusColor = (status: EventStatus) => {
     switch (status) {
       case "active":
         return "bg-green-100 text-green-800";
@@ -432,10 +451,15 @@ export default function EventsAdminPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
-                            {new Date(event.date).toLocaleDateString()}
+                            {(() => {
+                              const eventDate = event.date ?? event.startDate;
+                              return eventDate
+                                ? new Date(eventDate).toLocaleDateString()
+                                : "—";
+                            })()}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {event.time}
+                            {event.time ?? ""}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -626,7 +650,7 @@ export default function EventsAdminPage() {
                             onChange={(e) =>
                               setFormData({
                                 ...formData,
-                                status: e.target.value as Event["status"],
+                                status: e.target.value as EventStatus,
                               })
                             }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import type { Event } from "@/lib/database";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -22,12 +23,6 @@ const containerVariants = {
     },
   },
 };
-
-interface ApiResponse {
-  success: boolean;
-  data: Event[];
-  count: number;
-}
 
 const itemVariants = {
   hidden: { opacity: 0, y: 50, scale: 0.95 },
@@ -121,17 +116,19 @@ export default function EventsSection() {
           console.log("EventsSection: Fetched events:", eventsData);
           console.log("EventsSection: Events array length:", eventsData.length);
 
-          // Filter to show only active events and sort by start date (earliest first)
-          const activeEvents = eventsData.filter(
-            (event) => event.status === "active"
+          // Filter to show registration-open or upcoming events and sort by date (earliest first)
+          const openOrUpcoming = eventsData.filter(
+            (event: Event) =>
+              event.status === "registration-open" ||
+              event.status === "upcoming"
           );
-          const sortedEvents = activeEvents.sort(
-            (a, b) =>
-              new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+          const sortedEvents = openOrUpcoming.sort(
+            (a: Event, b: Event) =>
+              new Date(a.date).getTime() - new Date(b.date).getTime()
           );
 
           console.log(
-            "EventsSection: Showing only active events:",
+            "EventsSection: Showing open/upcoming events:",
             sortedEvents.length
           );
           setEvents(sortedEvents);
@@ -141,11 +138,11 @@ export default function EventsSection() {
             response.data
           );
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("EventsSection: Error fetching events:", error);
 
         // If it's an auth error, you might want to redirect to login
-        if (error.response?.status === 401) {
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
           // Handle unauthorized access
           console.log("Unauthorized access - redirecting to login");
           // router.push('/login'); // if using Next.js router
@@ -387,19 +384,19 @@ export default function EventsSection() {
                           <motion.span
                             whileHover={{ scale: 1.05 }}
                             className={`px-4 py-2 rounded-full text-sm font-bold shadow-lg ${
-                              event.status === "active"
+                              event.status === "registration-open"
                                 ? "bg-green-500 text-white"
-                                : event.status === "inactive"
+                                : event.status === "upcoming"
                                 ? "bg-yellow-500 text-white"
                                 : event.status === "completed"
                                 ? "bg-blue-500 text-white"
                                 : "bg-red-500 text-white"
                             }`}
                           >
-                            {event.status === "active"
-                              ? "Active"
-                              : event.status === "inactive"
-                              ? "Inactive"
+                            {event.status === "registration-open"
+                              ? "Registration Open"
+                              : event.status === "upcoming"
+                              ? "Upcoming"
                               : event.status === "completed"
                               ? "Completed"
                               : "Cancelled"}
@@ -451,17 +448,7 @@ export default function EventsSection() {
                             </div>
                             <div>
                               <p className="font-semibold text-slate-800">
-                                {new Date(event.startDate).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    weekday: "long",
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                  }
-                                )}{" "}
-                                -{" "}
-                                {new Date(event.endDate).toLocaleDateString(
+                                {new Date(event.date).toLocaleDateString(
                                   "en-US",
                                   {
                                     weekday: "long",
@@ -471,9 +458,7 @@ export default function EventsSection() {
                                   }
                                 )}
                               </p>
-                              <p className="text-sm text-slate-500">
-                                Event Duration
-                              </p>
+                              <p className="text-sm text-slate-500">Date</p>
                             </div>
                           </motion.div>
 
@@ -503,12 +488,13 @@ export default function EventsSection() {
                             </div>
                             <div>
                               <p className="font-semibold text-slate-800">
-                                {event.featured
-                                  ? "Featured Event"
-                                  : "Standard Event"}
+                                Capacity: {event.currentRegistrations ?? 0}
+                                {event.maxCapacity
+                                  ? ` / ${event.maxCapacity}`
+                                  : ""}
                               </p>
                               <p className="text-sm text-slate-500">
-                                Event Type
+                                Registrations
                               </p>
                             </div>
                           </motion.div>
@@ -519,12 +505,12 @@ export default function EventsSection() {
                           whileHover={{ scale: 1.02, y: -2 }}
                           whileTap={{ scale: 0.98 }}
                           className={`w-full py-4 px-6 rounded-2xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-2xl ${
-                            event.status === "active"
+                            event.status === "registration-open"
                               ? "bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white hover:from-green-600 hover:via-green-700 hover:to-emerald-700"
                               : "bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800"
                           }`}
                         >
-                          {event.status === "active"
+                          {event.status === "registration-open"
                             ? "Register Now"
                             : "Learn More"}
                           <motion.div
@@ -575,19 +561,19 @@ export default function EventsSection() {
 
                             <span
                               className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
-                                event.status === "active"
+                                event.status === "registration-open"
                                   ? "bg-green-500 text-white"
-                                  : event.status === "inactive"
+                                  : event.status === "upcoming"
                                   ? "bg-yellow-500 text-white"
                                   : event.status === "completed"
                                   ? "bg-blue-500 text-white"
                                   : "bg-red-500 text-white"
                               }`}
                             >
-                              {event.status === "active"
-                                ? "Active"
-                                : event.status === "inactive"
-                                ? "Inactive"
+                              {event.status === "registration-open"
+                                ? "Registration Open"
+                                : event.status === "upcoming"
+                                ? "Upcoming"
                                 : event.status === "completed"
                                 ? "Completed"
                                 : "Cancelled"}
@@ -616,7 +602,7 @@ export default function EventsSection() {
                           <div className="flex items-center gap-2 text-xs text-slate-600">
                             <Calendar className="w-3 h-3 text-blue-600" />
                             <span className="font-medium">
-                              {new Date(event.startDate).toLocaleDateString(
+                              {new Date(event.date).toLocaleDateString(
                                 "en-US",
                                 {
                                   month: "short",
@@ -632,23 +618,18 @@ export default function EventsSection() {
                             <span className="truncate">{event.location}</span>
                           </div>
 
-                          <div className="flex items-center gap-2 text-xs text-slate-600">
-                            <Star className="w-3 h-3 text-purple-600" />
-                            <span>
-                              {event.featured ? "Featured" : "Standard"}
-                            </span>
-                          </div>
+                          {/* Removed featured label: not in Event interface */}
                         </div>
 
                         {/* Compact Action Button */}
                         <button
                           className={`w-full py-2 px-3 rounded-lg font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105 ${
-                            event.status === "active"
+                            event.status === "registration-open"
                               ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700"
                               : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
                           }`}
                         >
-                          {event.status === "active"
+                          {event.status === "registration-open"
                             ? "Register"
                             : "Learn More"}
                           <ArrowRight className="w-3 h-3" />

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Save, AlertCircle, CheckCircle } from "lucide-react";
+import { ArrowLeft, Save, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import AdminHeader from "@/components/AdminHeader";
@@ -12,12 +12,10 @@ import { getAuthToken } from "@/lib/laravel-auth";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/ToastContainer";
 
-interface EditNewsPageParams {
-  id: string;
-}
+type EditNewsPageParams = Record<string, string> & { id: string };
 
 export default function EditNewsPage() {
-  const params = useParams() as EditNewsPageParams;
+  const params = useParams<EditNewsPageParams>();
   const newsId = params.id;
 
   const [formData, setFormData] = useState({
@@ -38,13 +36,19 @@ export default function EditNewsPage() {
 
   const router = useRouter();
   const { admin } = useAuth();
-  const { toasts, success: showSuccess, error: showError, removeToast } = useToast();
-  
+  const {
+    toasts,
+    success: showSuccess,
+    error: showError,
+    removeToast,
+  } = useToast();
+
   // Check if user has news management role or super admin role
   const userRoles = admin?.roles || (admin?.role ? [admin.role] : []);
-  const canManageNews = userRoles.includes('news_manager') || userRoles.includes('super_admin');
+  const canManageNews =
+    userRoles.includes("news_manager") || userRoles.includes("super_admin");
 
-  console.log('🔍 NEWS EDIT PAGE DEBUG - User Access Check:', {
+  console.log("🔍 NEWS EDIT PAGE DEBUG - User Access Check:", {
     admin,
     userRoles,
     canManageNews,
@@ -85,7 +89,7 @@ export default function EditNewsPage() {
 
       if (result.success && result.data) {
         const newsData = result.data;
-        
+
         // Populate form with existing data
         setFormData({
           title: newsData.title || "",
@@ -93,7 +97,9 @@ export default function EditNewsPage() {
           content: newsData.content || "",
           author: newsData.author || "",
           author_title: newsData.author_title || "",
-          date: newsData.date ? new Date(newsData.date).toISOString().split('T')[0] : "",
+          date: newsData.date
+            ? new Date(newsData.date).toISOString().split("T")[0]
+            : "",
           image: null, // File input will be empty, but we'll show current image
           status: newsData.status || "published",
         });
@@ -102,13 +108,18 @@ export default function EditNewsPage() {
         if (newsData.image_url) {
           setCurrentImage(newsData.image_url);
         } else if (newsData.image) {
-          setCurrentImage(`${process.env.NEXT_PUBLIC_STORAGE}/news_images/${newsData.image}`);
+          setCurrentImage(
+            `${process.env.NEXT_PUBLIC_STORAGE}/news_images/${newsData.image}`
+          );
         }
 
         console.log("News data loaded successfully");
       } else {
         setError(result.error || "Failed to fetch news article");
-        showError("Loading Failed", result.error || "Failed to fetch news article");
+        showError(
+          "Loading Failed",
+          result.error || "Failed to fetch news article"
+        );
       }
     } catch (error) {
       console.error("Error fetching news data:", error);
@@ -148,7 +159,10 @@ export default function EditNewsPage() {
     for (const field of requiredFields) {
       if (!formData[field as keyof typeof formData]) {
         setError(`Please fill in the ${field.replace("_", " ")} field`);
-        showError("Validation Error", `Please fill in the ${field.replace("_", " ")} field`);
+        showError(
+          "Validation Error",
+          `Please fill in the ${field.replace("_", " ")} field`
+        );
         return false;
       }
     }
@@ -174,7 +188,7 @@ export default function EditNewsPage() {
       formDataToSend.append("author_title", formData.author_title);
       formDataToSend.append("date", formData.date);
       formDataToSend.append("status", formData.status);
-      
+
       // Only append image if a new one was selected
       if (formData.image) {
         formDataToSend.append("image", formData.image);
@@ -182,7 +196,7 @@ export default function EditNewsPage() {
           fileName: formData.image.name,
           fileSize: formData.image.size,
           fileType: formData.image.type,
-          storagePath: "storage/app/public/news_images"
+          storagePath: "storage/app/public/news_images",
         });
       }
 
@@ -198,7 +212,7 @@ export default function EditNewsPage() {
       const response = await fetch(`/api/laravel/news/${newsId}`, {
         method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: formDataToSend,
       });
@@ -207,7 +221,7 @@ export default function EditNewsPage() {
 
       if (result.success) {
         console.log("News article updated successfully:", result.data);
-        
+
         // Show success toast
         showSuccess(
           "Article Updated!",
@@ -223,7 +237,7 @@ export default function EditNewsPage() {
         const errorMessage = result.errors
           ? Object.values(result.errors).flat().join(", ")
           : result.message || "Failed to update news article";
-        
+
         showError("Update Failed", errorMessage);
         console.error("Error updating news:", result);
       }
@@ -369,7 +383,9 @@ export default function EditNewsPage() {
                     placeholder="Write a brief, engaging description of the article..."
                     required
                   />
-                  <p className="text-xs text-gray-500">This will appear as the preview text for your article</p>
+                  <p className="text-xs text-gray-500">
+                    This will appear as the preview text for your article
+                  </p>
                 </div>
 
                 {/* Content */}
@@ -386,7 +402,9 @@ export default function EditNewsPage() {
                     placeholder="Write your article content here..."
                     required
                   />
-                  <p className="text-xs text-gray-500">You can resize this field vertically for more writing space</p>
+                  <p className="text-xs text-gray-500">
+                    You can resize this field vertically for more writing space
+                  </p>
                 </div>
 
                 {/* Status */}
@@ -400,14 +418,20 @@ export default function EditNewsPage() {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                   >
-                    <option value="published">Published - Make article visible to readers</option>
-                    <option value="archived">Archived - Hide from public view</option>
+                    <option value="published">
+                      Published - Make article visible to readers
+                    </option>
+                    <option value="archived">
+                      Archived - Hide from public view
+                    </option>
                   </select>
                 </div>
 
                 {/* Author Information */}
                 <div className="bg-gray-50 rounded-xl p-6 space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Author Information</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Author Information
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-gray-900">
@@ -453,7 +477,9 @@ export default function EditNewsPage() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                     required
                   />
-                  <p className="text-xs text-gray-500">When should this article be published?</p>
+                  <p className="text-xs text-gray-500">
+                    When should this article be published?
+                  </p>
                 </div>
 
                 {/* Image */}
@@ -461,11 +487,13 @@ export default function EditNewsPage() {
                   <label className="block text-sm font-semibold text-gray-900">
                     Featured Image
                   </label>
-                  
+
                   {/* Show current image if exists */}
                   {currentImage && (
                     <div className="mb-4">
-                      <p className="text-sm text-gray-600 mb-2">Current Image:</p>
+                      <p className="text-sm text-gray-600 mb-2">
+                        Current Image:
+                      </p>
                       <div className="relative inline-block">
                         <img
                           src={currentImage}
@@ -475,7 +503,7 @@ export default function EditNewsPage() {
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-blue-400 transition-colors">
                     <input
                       type="file"
@@ -485,7 +513,10 @@ export default function EditNewsPage() {
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />
                     <p className="text-sm text-gray-500 mt-2 text-center">
-                      {currentImage ? "Choose a new image to replace the current one" : "Choose an eye-catching image for your article"} • JPEG, PNG, JPG, GIF • Max 2MB
+                      {currentImage
+                        ? "Choose a new image to replace the current one"
+                        : "Choose an eye-catching image for your article"}{" "}
+                      • JPEG, PNG, JPG, GIF • Max 2MB
                     </p>
                   </div>
                 </div>
