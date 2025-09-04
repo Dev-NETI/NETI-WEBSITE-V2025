@@ -13,6 +13,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/three": "^0.178.1",
     "@vercel/postgres": "^0.10.0",
+    "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
     "framer-motion": "^12.23.12",
     "jsonwebtoken": "^9.0.2",
