@@ -7,6 +7,7 @@ import VideoHeaderSection from "../components/VideoHeaderSection";
 import WhatWeOffer from "@/components/WhatWeOffer";
 import { NewsArticle } from "@/lib/news-db";
 import NewsSlider from "@/components/NewsSlider";
+import EventsSection from "@/components/EventsSection";
 
 interface NewsApiResponse {
   success: boolean;
@@ -203,6 +204,8 @@ export default function HomePage() {
           </motion.div>
         </motion.section>
       </div>
+
+      <EventsSection />
     </>
   );
 }
