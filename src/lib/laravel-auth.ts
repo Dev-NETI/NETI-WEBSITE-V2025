@@ -60,7 +60,7 @@ export async function loginToLaravel(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify({ email, password }),
     });
@@ -82,7 +82,10 @@ export async function loginToLaravel(
       };
     }
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : "Network error. Please try again.";
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Network error. Please try again.";
     console.error("Laravel login error", { email, error: errorMessage });
     return {
       success: false,
@@ -109,8 +112,8 @@ export async function verifyLaravelToken(): Promise<LaravelAuthResponse> {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": `Bearer ${token}`,
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -120,12 +123,15 @@ export async function verifyLaravelToken(): Promise<LaravelAuthResponse> {
       removeAuthToken();
       console.warn("Token verification failed", { error: result.error });
     } else {
-      console.log("Token verification successful", { role: result.admin?.role });
+      console.log("Token verification successful", {
+        role: result.admin?.role,
+      });
     }
 
     return result;
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : "Token verification failed";
+    const errorMessage =
+      error instanceof Error ? error.message : "Token verification failed";
     console.error("Laravel verify error", { error: errorMessage });
     removeAuthToken();
     return {
@@ -153,8 +159,8 @@ export async function logoutFromLaravel(): Promise<LaravelAuthResponse> {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": `Bearer ${token}`,
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -166,7 +172,8 @@ export async function logoutFromLaravel(): Promise<LaravelAuthResponse> {
 
     return result;
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : "Logout error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Logout error";
     console.error("Laravel logout error", { error: errorMessage });
     removeAuthToken();
     return {
@@ -179,9 +186,9 @@ export async function logoutFromLaravel(): Promise<LaravelAuthResponse> {
 // Get profile function
 export async function getProfileFromLaravel(): Promise<LaravelAuthResponse> {
   try {
-    Logger.info("Getting profile from Laravel");
+    console.info("Getting profile from Laravel");
 
-    const result: LaravelAuthResponse = await apiRequest(
+    const response = await fetch(
       `${LARAVEL_BASE_URL}${config.API_ENDPOINTS.ADMIN_PROFILE}`,
       {
         method: "GET",
@@ -189,17 +196,22 @@ export async function getProfileFromLaravel(): Promise<LaravelAuthResponse> {
       }
     );
 
+    const result: LaravelAuthResponse = await response.json();
+
     if (!result.success) {
       removeAuthToken();
-      Logger.warn("Failed to get profile", { error: result.error });
+      console.warn("Failed to get profile", { error: result.error });
     } else {
-      Logger.info("Profile retrieved successfully", { role: result.admin?.role });
+      console.info("Profile retrieved successfully", {
+        role: result.admin?.role,
+      });
     }
 
     return result;
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : "Failed to get profile";
-    Logger.error("Laravel profile error", { error: errorMessage });
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to get profile";
+    console.error("Laravel profile error", { error: errorMessage });
     return {
       success: false,
       error: errorMessage,

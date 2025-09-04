@@ -9,7 +9,6 @@ import {
   Lock,
   Mail,
   AlertCircle,
-  LogIn,
   Anchor,
   Waves,
   Ship,

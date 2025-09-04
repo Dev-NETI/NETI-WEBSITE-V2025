@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
@@ -101,56 +101,56 @@ export default function AdminDashboard() {
   // Get user's roles from Laravel Sanctum auth (from UserRole model)
   // Use roles array if available, fallback to single role for backward compatibility
   const userRoles = admin?.roles || (admin?.role ? [admin.role] : []);
-  
-  console.log('🔍 DASHBOARD DEBUG - Laravel Auth Data:', {
+
+  console.log("🔍 DASHBOARD DEBUG - Laravel Auth Data:", {
     admin,
     userRoles,
     hasRoles: userRoles.length > 0,
-    adminStringified: JSON.stringify(admin, null, 2)
+    adminStringified: JSON.stringify(admin, null, 2),
   });
 
   // Role to action mapping - each role manages their specific area
   const ROLE_TO_ACTIONS: Record<string, string[]> = {
-    user_manager: ['users'],           // User Management role sees only users
-    events_manager: ['events'],        // Events Management role sees only events
-    news_manager: ['news'],            // News Management role sees only news
-    super_admin: ['users', 'events', 'news'], // Super admin sees everything
+    user_manager: ["users"], // User Management role sees only users
+    events_manager: ["events"], // Events Management role sees only events
+    news_manager: ["news"], // News Management role sees only news
+    super_admin: ["users", "events", "news"], // Super admin sees everything
   };
 
   // Filter actions based on user's Laravel Sanctum roles (from UserRole model)
   const filteredActions = quickActions.filter((action) => {
     // If no permission required, show to everyone
     if (!action.permission) return true;
-    
+
     // If no user roles, show nothing
     if (!userRoles || userRoles.length === 0) return false;
-    
+
     // Check if ANY of the user's roles allows this action
-    const allowedByAnyRole = userRoles.some(role => {
+    const allowedByAnyRole = userRoles.some((role) => {
       const allowedActions = ROLE_TO_ACTIONS[role] || [];
-      return allowedActions.includes(action.permission);
+      return allowedActions.includes(action.permission!);
     });
-    
+
     console.log(`🔍 Checking action "${action.title}":`, {
       userRoles,
       permission: action.permission,
       allowedByAnyRole,
-      rolePermissions: userRoles.map(role => ({
+      rolePermissions: userRoles.map((role) => ({
         role,
-        actions: ROLE_TO_ACTIONS[role] || []
-      }))
+        actions: ROLE_TO_ACTIONS[role] || [],
+      })),
     });
-    
+
     return allowedByAnyRole;
   });
 
   // Debug logging
-  console.log('🔍 Dashboard Debug:', {
+  console.log("🔍 Dashboard Debug:", {
     adminData: admin,
     userRoles,
     filteredActionsCount: filteredActions.length,
-    filteredActions: filteredActions.map(a => a.title),
-    allRoleActions: userRoles.flatMap(role => ROLE_TO_ACTIONS[role] || [])
+    filteredActions: filteredActions.map((a) => a.title),
+    allRoleActions: userRoles.flatMap((role) => ROLE_TO_ACTIONS[role] || []),
   });
 
   const handleLogout = async () => {
@@ -196,7 +196,9 @@ export default function AdminDashboard() {
                     {admin.name}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">
-                    {userRoles.length > 0 ? userRoles.join(", ").replace(/_/g, " ") : "No roles"}
+                    {userRoles.length > 0
+                      ? userRoles.join(", ").replace(/_/g, " ")
+                      : "No roles"}
                   </p>
                 </div>
 
