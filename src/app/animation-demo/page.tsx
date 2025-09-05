@@ -21,7 +21,6 @@ export default function AnimationDemoPage() {
   const skyY = useTransform(smoothScrollY, [0, 1800], [0, -100]);
   const cityScale = useTransform(smoothScrollY, [0, 1800], [1, 1.1]);
 
-
   useEffect(() => {
     setIsClient(true);
   }, []);
