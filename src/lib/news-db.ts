@@ -1,21 +1,24 @@
 import { DatabaseResult } from "./db";
 
 export interface NewsArticle {
-  id: string;
+  id: string | number;
   title: string;
   slug: string;
   excerpt: string;
   content: string;
-  category: string;
+  category?: string; // Optional for Laravel model
   author: string;
   author_title: string;
   date: string;
-  readTime: string;
-  image: string;
-  featured: boolean;
+  readTime?: string; // Optional, can be computed
+  read_time?: string; // Laravel model appends this
+  image: string | null;
+  image_url?: string; // Laravel model appends this
+  featured?: boolean; // Optional for Laravel model
   status: "draft" | "published" | "archived";
-  tags: string[];
+  tags?: string[]; // Optional for Laravel model
   views: number;
+  created_by?: number; // Laravel model has this
   created_at: string;
   updated_at: string;
 }
