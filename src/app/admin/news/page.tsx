@@ -113,8 +113,6 @@ export default function AdminNewsPage() {
     }
   };
 
-  news.length > 0 && console.log(news);
-
   const handleDeleteNews = async (newsItem: LaravelNewsArticle) => {
     try {
       setLoading(true);
@@ -224,7 +222,7 @@ export default function AdminNewsPage() {
   // Update current page when filters change
   React.useEffect(() => {
     resetPageOnFilterChange();
-  }, [searchTerm, filterStatus]);
+  }, [searchTerm, filterStatus, resetPageOnFilterChange]);
 
   const totalViews = news.reduce((sum, item) => sum + (item.views || 0), 0);
   const publishedCount = news.filter(

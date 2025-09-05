@@ -214,7 +214,7 @@ export default function WhatWeOffer() {
                 NETI offers comprehensive maritime training programs designed to
                 meet international standards. Our programs equip maritime
                 professionals with the knowledge and skills needed to excel in
-                today's competitive maritime industry. From mandatory safety
+                today&apos;s competitive maritime industry. From mandatory safety
                 training to advanced upgrading and specialized courses, we
                 ensure that each program is delivered by experienced instructors
                 using state-of-the-art facilities and modern training
