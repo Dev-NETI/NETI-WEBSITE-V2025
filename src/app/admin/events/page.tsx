@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import AdminAuthGuard from "@/components/AdminAuthGuard";
 import AdminHeader from "@/components/AdminHeader";
 import { motion, AnimatePresence } from "framer-motion";
@@ -95,7 +95,7 @@ export default function EventsAdminPage() {
   };
 
   // Fetch events
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
       const token = await getAuthenticatedAxios();
@@ -126,11 +126,11 @@ export default function EventsAdminPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchEvents();
-  }, []);
+  }, [fetchEvents]);
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {

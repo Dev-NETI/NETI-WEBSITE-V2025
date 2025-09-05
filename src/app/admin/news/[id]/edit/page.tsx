@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Save, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import AdminHeader from "@/components/AdminHeader";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import { getAuthToken } from "@/lib/laravel-auth";
 import { useToast } from "@/hooks/useToast";
@@ -55,14 +56,7 @@ export default function EditNewsPage() {
     newsId,
   });
 
-  // Fetch existing news data
-  useEffect(() => {
-    if (newsId && canManageNews) {
-      fetchNewsData();
-    }
-  }, [newsId, canManageNews]);
-
-  const fetchNewsData = async () => {
+  const fetchNewsData = useCallback(async () => {
     try {
       setInitialLoading(true);
       setError("");
@@ -129,7 +123,14 @@ export default function EditNewsPage() {
     } finally {
       setInitialLoading(false);
     }
-  };
+  }, [newsId]);
+
+  // Fetch existing news data
+  useEffect(() => {
+    if (newsId && canManageNews) {
+      fetchNewsData();
+    }
+  }, [newsId, canManageNews, fetchNewsData]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -495,9 +496,11 @@ export default function EditNewsPage() {
                         Current Image:
                       </p>
                       <div className="relative inline-block">
-                        <img
+                        <Image
                           src={currentImage}
                           alt="Current article image"
+                          width={128}
+                          height={96}
                           className="w-32 h-24 object-cover rounded-lg border border-gray-300"
                         />
                       </div>

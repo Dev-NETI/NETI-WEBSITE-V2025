@@ -136,29 +136,29 @@ const services: Service[] = [
       "International Convention Compliance",
     ],
   },
+  {
+    id: "tesda",
+    title: "TESDA",
+    shortDesc:
+      "Technical Education and Skills Development Authority certified programs",
+    icon: Flag,
+    color: "text-green-400",
+    bgGradient: "from-green-500/20 to-emerald-500/20",
+    description:
+      "TESDA-certified technical and vocational training programs that provide industry-recognized qualifications and competencies. Our TESDA courses are designed to meet national standards and provide pathways to employment and career advancement in the maritime and technical sectors.",
+    features: [
+      "National Certificates (NC) I-IV Programs",
+      "Technical Vocational Education and Training",
+      "Industry-Based Training Modules",
+      "Competency Assessment and Certification",
+      "Skills Enhancement and Upgrading Programs",
+      "Employment-Ready Technical Skills Development",
+    ],
+  },
 ];
 
 export default function WhatWeOffer() {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        duration: 0.6,
-      },
-    },
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-    },
-  };
 
   const modalVariants = {
     hidden: { opacity: 0, scale: 0.8 },
@@ -186,109 +186,99 @@ export default function WhatWeOffer() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          {/* Left Column - Description */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mb-16">
+          {/* Left Column - What We Offer */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="lg:col-span-6"
           >
-            {/* Section Header */}
-            <div className="mb-8">
-              <motion.h2
-                className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight"
-                initial={{ opacity: 0, y: -20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-              >
-                WHAT WE OFFER
-              </motion.h2>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="space-y-6"
-              >
-                <p className="text-xl text-white leading-relaxed text-justify">
-                  NETI offers comprehensive maritime training programs designed
-                  to meet international standards. Our programs equip maritime
-                  professionals with the knowledge and skills needed to excel in
-                  today’s competitive maritime industry. From mandatory safety
-                  training to advanced upgrading and specialized courses, we
-                  ensure that each program is delivered by experienced
-                  instructors using state-of-the-art facilities and modern
-                  training methodologies.
-                </p>
-              </motion.div>
-            </div>
+            <motion.h2
+              className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight"
+              initial={{ opacity: 0, y: -20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              WHAT WE OFFER
+            </motion.h2>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="space-y-6"
+            >
+              <p className="text-xl text-white leading-relaxed text-justify">
+                NETI offers comprehensive maritime training programs designed to
+                meet international standards. Our programs equip maritime
+                professionals with the knowledge and skills needed to excel in
+                today&apos;s competitive maritime industry. From mandatory safety
+                training to advanced upgrading and specialized courses, we
+                ensure that each program is delivered by experienced instructors
+                using state-of-the-art facilities and modern training
+                methodologies.
+              </p>
+            </motion.div>
+          </motion.div>
 
+          {/* Right Column - Corporate Video */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
             <CompanyProfileVideo />
           </motion.div>
+        </div>
 
-          {/* Right Column - Services Grid */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="lg:col-span-6"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {services.map((service) => {
-                const IconComponent = service.icon;
-                return (
-                  <motion.div
-                    key={service.id}
-                    variants={cardVariants}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                    whileHover={{ y: -6, scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setSelectedService(service)}
-                    className="group relative bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 overflow-hidden"
-                  >
-                    {/* Card Background Gradient */}
+        {/* Services Cards - 7 Columns in 1 Row */}
+        <div className="grid grid-cols-7 gap-4 overflow-x-auto">
+          {services.map((service) => {
+            const IconComponent = service.icon;
+            return (
+              <div
+                key={service.id}
+                onClick={() => setSelectedService(service)}
+                className="group relative bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 min-w-0"
+              >
+                {/* Card Background Gradient */}
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${service.bgGradient} opacity-0 group-hover:opacity-15 rounded-xl transition-opacity duration-300`}
+                />
+
+                {/* Content */}
+                <div className="relative z-10 text-center">
+                  {/* Icon */}
+                  <div className="mb-3">
                     <div
-                      className={`absolute inset-0 bg-gradient-to-br ${service.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-                    ></div>
-
-                    {/* Content */}
-                    <div className="relative z-10">
-                      {/* Icon */}
-                      <div className="mb-3">
-                        <div
-                          className={`w-10 h-10 rounded-lg bg-gradient-to-br ${service.bgGradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
-                        >
-                          <IconComponent
-                            className={`w-5 h-5 ${service.color}`}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Title */}
-                      <h3 className="text-base font-bold text-gray-900 mb-2 group-hover:text-gray-800 transition-colors leading-tight">
-                        {service.title}
-                      </h3>
-
-                      {/* Short Description */}
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2 group-hover:text-gray-700 transition-colors">
-                        {service.shortDesc}
-                      </p>
-
-                      {/* Learn More Button */}
-                      <div className="flex items-center text-blue-600 text-sm font-medium group-hover:text-blue-700 transition-colors">
-                        <span>Learn More</span>
-                        <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" />
-                      </div>
+                      className={`w-10 h-10 mx-auto rounded-lg bg-gradient-to-br ${service.bgGradient} flex items-center justify-center shadow-md`}
+                    >
+                      <IconComponent className={`w-5 h-5 ${service.color}`} />
                     </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </motion.div>
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="text-sm font-bold text-gray-900 mb-2 group-hover:text-gray-800 transition-colors leading-tight">
+                    {service.title}
+                  </h3>
+
+                  {/* Short Description */}
+                  <p className="text-gray-600 text-xs mb-3 line-clamp-2 group-hover:text-gray-700 transition-colors leading-relaxed">
+                    {service.shortDesc}
+                  </p>
+
+                  {/* Learn More Button */}
+                  <div className="flex items-center justify-center text-blue-600 text-xs font-medium group-hover:text-blue-700 transition-colors">
+                    <span>Learn More</span>
+                    <ChevronRight className="w-3 h-3 ml-1" />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
