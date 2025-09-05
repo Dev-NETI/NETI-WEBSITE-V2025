@@ -224,3 +224,12 @@ html {
     stroke-dashoffset: 0;
   }
 }
+
+
+/* Mobile-only styles - applies only on screens smaller than 640px (sm breakpoint) */
+@media (max-width: 639px) {
+  .parallax-section {
+    height: 100vh;
+    width: 100%;
+  }
+}
