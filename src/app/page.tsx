@@ -32,39 +32,51 @@ export default function HomePage() {
   const skyY = useTransform(smoothScrollY, [0, 1800], [0, -100]);
   const cityScale = useTransform(smoothScrollY, [0, 1800], [1, 1.1]);
 
-  // Fetch news from API
+  // Smooth dissolve transition for images before video section
+  // const imageOpacity = useTransform(smoothScrollY, [0, 1300, 1500], [1, 1, 1]);
+
+  // Video section dissolve transition
+  const videoSectionOpacity = useTransform(smoothScrollY, [1100, 2500], [0, 1]);
+  const videoSectionY = useTransform(smoothScrollY, [1500, 2500], [30, 0]);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Fetch news from Laravel backend
+
   useEffect(() => {
     if (!isClient) return;
 
     const fetchNews = async () => {
       try {
         setNewsLoading(true);
-        console.log("VideoHeaderSection: Starting to fetch news...");
-        const response = await fetch("/api/news?limit=6");
+        console.log("Homepage: Starting to fetch news from Laravel backend...");
+
+        const laravelApiUrl =
+          process.env.NEXT_PUBLIC_LARAVEL_BASE_URL || "http://localhost:8000";
+        const response = await fetch(
+          `${laravelApiUrl}/api/news/public?limit=6`
+        );
         const result: NewsApiResponse = await response.json();
 
         console.log(
-          "VideoHeaderSection: News API response:",
+          "Homepage: News API response:",
           response.status,
           response.ok
         );
-        console.log("VideoHeaderSection: News API result:", result);
+        console.log("Homepage: News API result:", result);
 
         if (result.success) {
-          console.log("VideoHeaderSection: Fetched news:", result.data);
-          console.log(
-            "VideoHeaderSection: News array length:",
-            result.data?.length || 0
-          );
-          console.log("VideoHeaderSection: Setting news state...");
+          console.log("Homepage: Fetched news:", result.data);
+          console.log("Homepage: News array length:", result.data?.length || 0);
           setNews(result.data);
         } else {
-          console.log("VideoHeaderSection: News API error:", result);
+          console.log("Homepage: News API error:", result);
         }
       } catch (error) {
-        console.error("VideoHeaderSection: Error fetching news:", error);
+        console.error("Homepage: Error fetching news:", error);
       } finally {
-        console.log("VideoHeaderSection: Setting news loading to false");
         setNewsLoading(false);
       }
     };
@@ -72,36 +84,30 @@ export default function HomePage() {
     fetchNews();
   }, [isClient]);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  if (!isClient) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-white text-2xl flex items-center gap-4"
-        >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-8 h-8 border-3 border-white border-t-transparent rounded-full"
-          />
-          <span className="font-semibold">Loading Training Center...</span>
-        </motion.div>
-      </div>
-    );
-  }
-
   return (
     <>
       <div
         className="relative bg-slate-50 flex flex-col"
         style={{ height: "300vh" }}
       >
+        {!isClient && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="text-white text-2xl flex items-center gap-4"
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="w-8 h-8 border-3 border-white border-t-transparent rounded-full"
+              />
+              <span className="font-semibold">Loading Training Center...</span>
+            </motion.div>
+          </div>
+        )}
+
         <Navigation />
 
         {/* Parallax Images with Dissolve Transition */}
@@ -113,10 +119,10 @@ export default function HomePage() {
                 className="text-5xl md:text-8xl font-bold mb-25 relative text-center text-white"
                 initial={{ opacity: 0, y: 100, scale: 0.5, rotateX: 90 }}
                 animate={{
-                  opacity: 1,
-                  y: 0,
-                  scale: 1,
-                  rotateX: 0,
+                  opacity: isClient ? 1 : 0,
+                  y: isClient ? 0 : 100,
+                  scale: isClient ? 1 : 0.5,
+                  rotateX: isClient ? 0 : 90,
                 }}
                 transition={{
                   duration: 1.2,
@@ -140,7 +146,7 @@ export default function HomePage() {
                 alt="IT Park Background"
                 className="w-full h-full object-cover"
                 initial={{ scale: 1.1, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
+                animate={{ scale: 1, opacity: isClient ? 1 : 0 }}
                 transition={{ duration: 2, ease: "easeOut" }}
               />
               <motion.div
@@ -152,7 +158,7 @@ export default function HomePage() {
                   alt="City View"
                   className="w-full h-full object-cover"
                   initial={{ scale: 1.1, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
+                  animate={{ scale: 1, opacity: isClient ? 1 : 0 }}
                   transition={{ duration: 2, ease: "easeOut", delay: 0.3 }}
                 />
               </motion.div>
@@ -165,7 +171,7 @@ export default function HomePage() {
                   alt="Building"
                   className="w-full h-full object-cover"
                   initial={{ scale: 1.1, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
+                  animate={{ scale: 1, opacity: isClient ? 1 : 0 }}
                   transition={{ duration: 2, ease: "easeOut", delay: 0.6 }}
                 />
               </motion.div>
