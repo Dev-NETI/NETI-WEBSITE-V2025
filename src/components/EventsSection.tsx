@@ -8,10 +8,10 @@ import {
   Star,
   Sparkles,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Event } from "@/lib/database";
+import axios from "axios";
+import type { Event } from "@/lib/database";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -23,12 +23,6 @@ const containerVariants = {
     },
   },
 };
-
-interface ApiResponse {
-  success: boolean;
-  data: Event[];
-  count: number;
-}
 
 const itemVariants = {
   hidden: { opacity: 0, y: 50, scale: 0.95 },
@@ -61,36 +55,98 @@ export default function EventsSection() {
     const fetchEvents = async () => {
       try {
         setEventsLoading(true);
-        console.log("EventsSection: Starting to fetch events...");
-        const response = await fetch("/api/events");
-        const result: ApiResponse = await response.json();
+        const email = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+        const password = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
+
+        // First authenticate with admin credentials
+        const loginResponse = await axios.post(
+          `${
+            process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
+          }/api/admin/login`,
+          {
+            email: email,
+            password: password,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            withCredentials: true,
+          }
+        );
+
+        console.log("EventsSection: Login response:", loginResponse.data);
+
+        // Get the token from login response
+        const token =
+          loginResponse.data.token || loginResponse.data.access_token;
+
+        if (!token) {
+          throw new Error("No token received from login");
+        }
+
+        // Now fetch events with the token
+        const response = await axios.get(
+          `${
+            process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
+          }/api/admin/events`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            withCredentials: true,
+          }
+        );
 
         console.log(
           "EventsSection: API response:",
           response.status,
-          response.ok
+          response.status === 200
         );
-        console.log("EventsSection: API result:", result);
+        console.log("EventsSection: API result:", response.data);
 
-        if (result.success) {
-          console.log("EventsSection: Fetched events:", result.data);
+        // Handle different response structures from Laravel backend
+        const eventsData =
+          response.data.data || response.data.events || response.data;
+
+        if (eventsData && Array.isArray(eventsData)) {
+          console.log("EventsSection: Fetched events:", eventsData);
+          console.log("EventsSection: Events array length:", eventsData.length);
+
+          // Filter to show registration-open or upcoming events and sort by date (earliest first)
+          const openOrUpcoming = eventsData.filter(
+            (event: Event) =>
+              event.status === "registration-open" ||
+              event.status === "upcoming"
+          );
+          const sortedEvents = openOrUpcoming.sort(
+            (a: Event, b: Event) =>
+              new Date(a.date).getTime() - new Date(b.date).getTime()
+          );
+
           console.log(
-            "EventsSection: Events array length:",
-            result.data?.length || 0
+            "EventsSection: Showing open/upcoming events:",
+            sortedEvents.length
           );
-
-          // Sort events by date (earliest first)
-          const sortedEvents = result.data.sort(
-            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-          );
-
-          console.log("EventsSection: Setting sorted events state...");
           setEvents(sortedEvents);
         } else {
-          console.log("EventsSection: API error:", result);
+          console.log(
+            "EventsSection: No valid events data found:",
+            response.data
+          );
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("EventsSection: Error fetching events:", error);
+
+        // If it's an auth error, you might want to redirect to login
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          // Handle unauthorized access
+          console.log("Unauthorized access - redirecting to login");
+          // router.push('/login'); // if using Next.js router
+        }
       } finally {
         console.log("EventsSection: Setting loading to false");
         setEventsLoading(false);
@@ -178,16 +234,23 @@ export default function EventsSection() {
               variants={itemVariants}
               initial="hidden"
               animate="visible"
-              className="lg:col-span-2 relative bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden border border-slate-200/50 h-[500px]"
+              className="lg:col-span-2 relative bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden border border-slate-200/50 h-[400px]"
             >
               <div className="animate-pulse">
                 {/* Shimmer effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent -translate-x-full animate-shimmer"></div>
 
-                <div className="h-64 bg-gradient-to-br from-slate-200 via-blue-100 to-slate-200"></div>
+                {/* Header skeleton */}
+                <div className="h-24 bg-gradient-to-br from-slate-200 via-blue-100 to-slate-200 border-b border-slate-200">
+                  <div className="p-6 flex justify-between items-start">
+                    <div className="w-20 h-6 bg-blue-200 rounded-full"></div>
+                    <div className="w-24 h-6 bg-green-200 rounded-full"></div>
+                  </div>
+                </div>
+
                 <div className="p-8 space-y-6">
                   <div className="space-y-3">
-                    <div className="h-6 bg-gradient-to-r from-slate-200 to-blue-200 rounded-lg w-3/4"></div>
+                    <div className="h-8 bg-gradient-to-r from-slate-200 to-blue-200 rounded-lg w-3/4"></div>
                     <div className="h-4 bg-slate-200 rounded w-full"></div>
                     <div className="h-4 bg-slate-200 rounded w-5/6"></div>
                   </div>
@@ -203,21 +266,32 @@ export default function EventsSection() {
 
             {/* Secondary Events Skeletons */}
             <div className="lg:col-span-1 space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0 lg:flex lg:flex-col lg:space-y-6">
-              {[...Array(3)].map((_, index) => (
+              {[...Array(2)].map((_, index) => (
                 <motion.div
                   key={index}
                   variants={itemVariants}
                   initial="hidden"
                   animate="visible"
                   transition={{ delay: (index + 1) * 0.1 }}
-                  className="relative bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden border border-slate-200/50 h-48"
+                  className="relative bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden border border-slate-200/50 h-56"
                 >
                   <div className="animate-pulse">
-                    <div className="h-32 bg-gradient-to-br from-slate-200 via-blue-100 to-slate-200"></div>
+                    {/* Header skeleton */}
+                    <div className="h-16 bg-gradient-to-br from-slate-200 via-blue-100 to-slate-200 border-b border-slate-200">
+                      <div className="p-4 flex justify-between items-center">
+                        <div className="w-16 h-4 bg-blue-200 rounded-full"></div>
+                        <div className="w-12 h-4 bg-green-200 rounded-full"></div>
+                      </div>
+                    </div>
+
                     <div className="p-4 space-y-3">
-                      <div className="h-4 bg-slate-200 rounded w-5/6"></div>
+                      <div className="h-5 bg-slate-200 rounded w-5/6"></div>
                       <div className="h-3 bg-slate-200 rounded w-full"></div>
                       <div className="h-3 bg-slate-200 rounded w-3/4"></div>
+                      <div className="space-y-2 mt-4">
+                        <div className="h-3 bg-blue-200 rounded w-4/5"></div>
+                        <div className="h-3 bg-slate-200 rounded w-3/5"></div>
+                      </div>
                       <div className="h-8 bg-gradient-to-r from-blue-200 to-indigo-200 rounded-lg w-full mt-3"></div>
                     </div>
                   </div>
@@ -250,7 +324,8 @@ export default function EventsSection() {
                 No Upcoming Events
               </h3>
               <p className="text-lg text-slate-600 mb-2">
-                We&apos;re currently planning exciting new maritime training events.
+                We&apos;re currently planning exciting new maritime training
+                events.
               </p>
               <p className="text-slate-500">
                 Check back soon for updates on workshops, conferences, and
@@ -295,59 +370,54 @@ export default function EventsSection() {
                       isSpecialEvent ? "ring-2 ring-yellow-400/50" : ""
                     }`}
                   >
-                    {/* Image Section */}
-                    <div className="relative h-64 overflow-hidden">
-                      <Image
-                        src={event.image}
-                        alt={event.title}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-700"
-                      />
+                    {/* Header Section with Badges */}
+                    <div className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-b border-blue-100/50">
+                      <div className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <motion.span
+                            whileHover={{ scale: 1.05 }}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-bold shadow-lg"
+                          >
+                            {event.category}
+                          </motion.span>
 
-                      {/* Gradient overlays */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-transparent to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                          <motion.span
+                            whileHover={{ scale: 1.05 }}
+                            className={`px-4 py-2 rounded-full text-sm font-bold shadow-lg ${
+                              event.status === "registration-open"
+                                ? "bg-green-500 text-white"
+                                : event.status === "upcoming"
+                                ? "bg-yellow-500 text-white"
+                                : event.status === "completed"
+                                ? "bg-blue-500 text-white"
+                                : "bg-red-500 text-white"
+                            }`}
+                          >
+                            {event.status === "registration-open"
+                              ? "Registration Open"
+                              : event.status === "upcoming"
+                              ? "Upcoming"
+                              : event.status === "completed"
+                              ? "Completed"
+                              : "Cancelled"}
+                          </motion.span>
+                        </div>
 
-                      {/* Floating badges */}
-                      <div className="absolute top-6 left-6 flex gap-2 flex-wrap">
-                        <motion.span
-                          whileHover={{ scale: 1.05 }}
-                          className="px-4 py-2 bg-white/90 backdrop-blur-sm text-blue-700 rounded-full text-sm font-bold shadow-lg border border-white/50"
+                        {/* Decorative icon */}
+                        <motion.div
+                          animate={{
+                            rotate: [0, 5, 0],
+                          }}
+                          transition={{
+                            duration: 4,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                          className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-lg"
                         >
-                          {event.category}
-                        </motion.span>
+                          <Sparkles className="w-8 h-8 text-white" />
+                        </motion.div>
                       </div>
-
-                      <div className="absolute top-6 right-6">
-                        <motion.span
-                          whileHover={{ scale: 1.05 }}
-                          className={`px-4 py-2 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border ${
-                            event.status === "registration-open"
-                              ? "bg-green-500/90 text-white border-green-400/50"
-                              : "bg-blue-500/90 text-white border-blue-400/50"
-                          }`}
-                        >
-                          {event.status === "registration-open"
-                            ? "Open Registration"
-                            : "Coming Soon"}
-                        </motion.span>
-                      </div>
-
-                      {/* Floating icons */}
-                      <motion.div
-                        animate={{
-                          y: [-5, 5, -5],
-                          rotate: [0, 10, 0],
-                        }}
-                        transition={{
-                          duration: 6,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        }}
-                        className="absolute bottom-6 left-6 w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30"
-                      >
-                        <Sparkles className="w-6 h-6 text-white" />
-                      </motion.div>
                     </div>
 
                     {/* Content Section */}
@@ -388,9 +458,7 @@ export default function EventsSection() {
                                   }
                                 )}
                               </p>
-                              <p className="text-sm text-slate-500">
-                                {event.time}
-                              </p>
+                              <p className="text-sm text-slate-500">Date</p>
                             </div>
                           </motion.div>
 
@@ -420,10 +488,13 @@ export default function EventsSection() {
                             </div>
                             <div>
                               <p className="font-semibold text-slate-800">
-                                {event.attendees} Participants
+                                Capacity: {event.currentRegistrations ?? 0}
+                                {event.maxCapacity
+                                  ? ` / ${event.maxCapacity}`
+                                  : ""}
                               </p>
                               <p className="text-sm text-slate-500">
-                                Expected Capacity
+                                Registrations
                               </p>
                             </div>
                           </motion.div>
@@ -460,8 +531,8 @@ export default function EventsSection() {
             })}
 
             {/* Secondary Events - Smaller cards on the right */}
-            <div className="lg:col-span-1 space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0 lg:flex lg:flex-col lg:space-y-6 lg:h-full">
-              {events.slice(1, 4).map((event) => {
+            <div className="lg:col-span-1 space-y-6 md:grid md:grid-cols-2 md:gap-2 md:space-y-0 lg:flex lg:flex-col lg:space-y-2 lg:h-64">
+              {events.slice(1, 3).map((event) => {
                 const isSpecialEvent = event.title
                   .toLowerCase()
                   .includes("anniversary");
@@ -480,37 +551,39 @@ export default function EventsSection() {
                         </div>
                       )}
 
-                      {/* Compact Image Section */}
-                      <div className="relative h-32 overflow-hidden">
-                        <Image
-                          src={event.image}
-                          alt={event.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
+                      {/* Compact Header Section */}
+                      <div className="relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 border-b border-slate-100">
+                        <div className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-bold shadow-sm">
+                              {event.category}
+                            </span>
 
-                        {/* Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                            <span
+                              className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
+                                event.status === "registration-open"
+                                  ? "bg-green-500 text-white"
+                                  : event.status === "upcoming"
+                                  ? "bg-yellow-500 text-white"
+                                  : event.status === "completed"
+                                  ? "bg-blue-500 text-white"
+                                  : "bg-red-500 text-white"
+                              }`}
+                            >
+                              {event.status === "registration-open"
+                                ? "Registration Open"
+                                : event.status === "upcoming"
+                                ? "Upcoming"
+                                : event.status === "completed"
+                                ? "Completed"
+                                : "Cancelled"}
+                            </span>
+                          </div>
 
-                        {/* Compact badges */}
-                        <div className="absolute top-3 left-3">
-                          <span className="px-2 py-1 bg-white/90 backdrop-blur-sm text-blue-700 rounded-full text-xs font-bold shadow-sm">
-                            {event.category}
-                          </span>
-                        </div>
-
-                        <div className="absolute top-3 right-3">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur-sm ${
-                              event.status === "registration-open"
-                                ? "bg-green-500/90 text-white"
-                                : "bg-blue-500/90 text-white"
-                            }`}
-                          >
-                            {event.status === "registration-open"
-                              ? "Open"
-                              : "Soon"}
-                          </span>
+                          {/* Decorative icon */}
+                          <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl shadow-md">
+                            <Calendar className="w-5 h-5 text-white" />
+                          </div>
                         </div>
                       </div>
 
@@ -545,10 +618,7 @@ export default function EventsSection() {
                             <span className="truncate">{event.location}</span>
                           </div>
 
-                          <div className="flex items-center gap-2 text-xs text-slate-600">
-                            <Users className="w-3 h-3 text-purple-600" />
-                            <span>{event.attendees} participants</span>
-                          </div>
+                          {/* Removed featured label: not in Event interface */}
                         </div>
 
                         {/* Compact Action Button */}

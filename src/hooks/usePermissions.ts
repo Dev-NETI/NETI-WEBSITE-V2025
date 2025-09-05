@@ -4,17 +4,15 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from './useAuth';
 import type { UserRole } from '@/lib/laravel-user';
 
-// Client-side permissions mapping for new role system
+// Client-side permissions mapping for the three role system
 const PERMISSIONS: Record<string, string[]> = {
-  super_admin: ['users', 'events', 'news', 'settings'],
+  user_manager: ['users'],           // User Management role
+  events_manager: ['events'],        // Events Management role  
+  news_manager: ['news'],            // News Management role
+  // Legacy fallbacks  
   user_management: ['users'],
-  events: ['events'],  
-  news: ['news'],
-  // Legacy roles for backward compatibility
-  user_manager: ['users'],
-  events_manager: ['events'],
-  news_manager: ['news'],
-  admin: ['users', 'events', 'news', 'settings']
+  events: ['events'],
+  news: ['news']
 };
 
 // Debug function to help troubleshoot permissions
@@ -64,11 +62,11 @@ export function usePermissions(): UsePermissionsReturn {
   
   // Memoize user roles to prevent infinite loop
   const userRoles = useMemo(() => {
-    const roles = admin?.roles || (admin?.role ? [admin.role] : []);
+    // Laravel returns a single 'role' field, convert to array for compatibility
+    const roles = admin?.role ? [admin.role] : [];
     console.log('👤 User admin object:', {
       adminData: admin,
       extractedRoles: roles,
-      adminRoles: admin?.roles,
       adminRole: admin?.role
     });
     return roles;

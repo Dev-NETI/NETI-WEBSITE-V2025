@@ -1,116 +1,78 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getAllNews, createNews, NewsArticle } from '@/lib/news-db';
-import { verifyToken } from '@/lib/auth';
-import { hasPermission } from '@/lib/middleware';
+import { NextRequest, NextResponse } from "next/server";
 
-// GET /api/news - Get all news articles (public)
+const LARAVEL_API_URL = `${process.env.NEXT_PUBLIC_LARAVEL_BASE_URL}/api`;
+
+// GET /api/news - Get all news articles (proxy to Laravel with auth)
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const limit = searchParams.get('limit');
-    const limitNumber = limit ? parseInt(limit, 10) : undefined;
-
-    console.log('News API: Getting news with limit:', limitNumber);
-
-    const result = await getAllNews(limitNumber);
-
-    if (!result.success || !result.data) {
+    // Get the Laravel Sanctum token from the Authorization header
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
-        { success: false, error: result.error || 'Failed to fetch news articles' },
-        { status: 500 }
+        { success: false, error: "Authentication required - no bearer token" },
+        { status: 401 }
       );
     }
 
-    console.log(`News API: Found ${result.data.length} news articles`);
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    const { searchParams } = new URL(request.url);
+    const queryString = searchParams.toString();
 
-    return NextResponse.json({
-      success: true,
-      data: result.data
-    });
+    const response = await fetch(
+      `${LARAVEL_API_URL}/news${queryString ? `?${queryString}` : ""}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const data = await response.json();
+    return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error('News API Error:', error);
+    console.error("News GET proxy error:", error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: "Failed to fetch news articles" },
       { status: 500 }
     );
   }
 }
 
-// POST /api/news - Create new news article (admin only)
+// POST /api/news - Create new news article (proxy to Laravel with auth)
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const token = request.cookies.get('admin-token')?.value;
-    if (!token) {
+    // Get the Laravel Sanctum token from the Authorization header
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
-        { success: false, error: 'Authentication required' },
+        { success: false, error: "Authentication required - no bearer token" },
         { status: 401 }
       );
     }
 
-    const decoded = await verifyToken(token);
-    if (!decoded) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid token' },
-        { status: 401 }
-      );
-    }
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
-    // Check permissions
-    if (!hasPermission(decoded.role, 'news_manager')) {
-      return NextResponse.json(
-        { success: false, error: 'Insufficient permissions' },
-        { status: 403 }
-      );
-    }
+    // Forward the request to Laravel with the same token
+    const formData = await request.formData();
 
-    const body = await request.json();
-    
-    // Validate required fields
-    const requiredFields = ['title', 'slug', 'excerpt', 'content', 'category', 'author', 'author_title', 'date', 'readTime', 'image'];
-    const missingFields = requiredFields.filter(field => !body[field]);
-    
-    if (missingFields.length > 0) {
-      return NextResponse.json(
-        { success: false, error: `Missing required fields: ${missingFields.join(', ')}` },
-        { status: 400 }
-      );
-    }
+    const response = await fetch(`${LARAVEL_API_URL}/news`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+      body: formData, // Forward the FormData as-is for file upload
+    });
 
-    const newsData: Omit<NewsArticle, 'id' | 'created_at' | 'updated_at' | 'views'> = {
-      title: body.title,
-      slug: body.slug,
-      excerpt: body.excerpt,
-      content: body.content,
-      category: body.category,
-      author: body.author,
-      author_title: body.author_title,
-      date: body.date,
-      readTime: body.readTime,
-      image: body.image,
-      featured: body.featured || false,
-      status: body.status || 'draft',
-      tags: body.tags || []
-    };
-
-    const result = await createNews(newsData);
-
-    if (!result.success || !result.data) {
-      return NextResponse.json(
-        { success: false, error: result.error || 'Failed to create news article' },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: result.data
-    }, { status: 201 });
-
+    const data = await response.json();
+    return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error('Create news error:', error);
+    console.error("News POST proxy error:", error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }

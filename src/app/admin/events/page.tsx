@@ -14,63 +14,111 @@ import {
   Save,
   X,
 } from "lucide-react";
-import { Event } from "@/lib/database";
+import axios from "axios";
 
-interface ApiResponse {
-  success: boolean;
-  data: Event[];
-  count: number;
-  error?: string;
+type EventStatus = "active" | "inactive" | "completed" | "cancelled";
+
+interface AdminEvent {
+  id: string;
+  title: string;
+  category?: string;
+  content?: string;
+  description: string;
+  featured?: boolean;
+  location?: string;
+  startDate?: string;
+  endDate?: string;
+  status: EventStatus;
+  date?: string;
+  time?: string;
+  currentRegistrations?: number;
+  maxCapacity?: number;
 }
 
-interface FormData extends Omit<Event, "id" | "createdAt" | "updatedAt"> {
+interface FormData {
   title: string;
-  date: string;
-  time: string;
-  location: string;
-  description: string;
   category: string;
-  attendees: string;
-  image: string;
-  status: Event["status"];
-  maxCapacity?: number;
-  currentRegistrations?: number;
+  content: string;
+  description: string;
+  featured: boolean;
+  location: string;
+  startDate: string;
+  endDate: string;
+  status: EventStatus;
 }
 
 export default function EventsAdminPage() {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<AdminEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showModal, setShowModal] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [editingEvent, setEditingEvent] = useState<AdminEvent | null>(null);
   const [formData, setFormData] = useState<FormData>({
     title: "",
-    date: "",
-    time: "",
-    location: "",
-    description: "",
     category: "",
-    attendees: "",
-    image: "/assets/images/nttc.jpg",
-    status: "upcoming",
-    maxCapacity: 100,
-    currentRegistrations: 0,
+    content: "",
+    description: "",
+    featured: false,
+    location: "",
+    startDate: "",
+    endDate: "",
+    status: "active",
   });
   const [submitting, setSubmitting] = useState(false);
+
+  // Authentication helper
+  const getAuthenticatedAxios = async () => {
+    // First authenticate with admin credentials
+    const loginResponse = await axios.post(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/login`,
+      {
+        email: process.env.NEXT_PUBLIC_ADMIN_EMAIL,
+        password: process.env.NEXT_PUBLIC_ADMIN_PASSWORD,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        withCredentials: true,
+      }
+    );
+
+    const token = loginResponse.data.token || loginResponse.data.access_token;
+    if (!token) {
+      throw new Error("No token received from login");
+    }
+
+    return token;
+  };
 
   // Fetch events
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/events");
-      const result: ApiResponse = await response.json();
+      const token = await getAuthenticatedAxios();
 
-      if (result.success) {
-        setEvents(result.data);
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/events`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      const eventsData =
+        response.data.data || response.data.events || response.data;
+
+      if (eventsData && Array.isArray(eventsData)) {
+        setEvents(eventsData);
       } else {
-        setError(result.error || "Failed to fetch events");
+        setError("Failed to fetch events - invalid data format");
       }
     } catch (err) {
       console.error("Error fetching events:", err);
@@ -90,32 +138,73 @@ export default function EventsAdminPage() {
     setSubmitting(true);
 
     try {
-      const url = editingEvent
-        ? `/api/events/${editingEvent.id}`
-        : "/api/events";
-      const method = editingEvent ? "PUT" : "POST";
+      const token = await getAuthenticatedAxios();
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      // Prepare the payload according to EventRequest structure
+      const eventPayload = {
+        title: formData.title,
+        category: formData.category,
+        content: formData.content,
+        description: formData.description,
+        featured: formData.featured,
+        location: formData.location,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        status: formData.status,
+      };
 
-      const result = await response.json();
-
-      if (result.success) {
-        await fetchEvents(); // Refresh the list
-        setShowModal(false);
-        setEditingEvent(null);
-        resetForm();
+      if (editingEvent) {
+        // Update existing event
+        await axios.put(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/events/${editingEvent.id}`,
+          eventPayload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            withCredentials: true,
+          }
+        );
       } else {
-        setError(result.error || "Failed to save event");
+        // Create new event
+        await axios.post(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/events`,
+          eventPayload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            withCredentials: true,
+          }
+        );
       }
-    } catch (err) {
-      console.error("Error saving event:", err);
-      setError("Failed to save event");
+
+      await fetchEvents(); // Refresh the list
+      setShowModal(false);
+      setEditingEvent(null);
+      resetForm();
+    } catch (error: unknown) {
+      console.error("Error saving event:", error);
+      if (axios.isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message as string | undefined;
+        const apiErrors = error.response?.data?.errors as
+          | Record<string, string[]>
+          | undefined;
+        if (apiMessage) {
+          setError(`Failed to save event: ${apiMessage}`);
+        } else if (apiErrors) {
+          const errorMessages = Object.values(apiErrors).flat();
+          setError(`Validation errors: ${errorMessages.join(", ")}`);
+        } else {
+          setError("Failed to save event");
+        }
+      } else {
+        setError("Failed to save event");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -128,19 +217,23 @@ export default function EventsAdminPage() {
     }
 
     try {
-      const response = await fetch(`/api/events/${id}`, {
-        method: "DELETE",
-      });
+      const token = await getAuthenticatedAxios();
 
-      const result = await response.json();
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/events/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
 
-      if (result.success) {
-        await fetchEvents(); // Refresh the list
-      } else {
-        setError(result.error || "Failed to delete event");
-      }
-    } catch (err) {
-      console.error("Error deleting event:", err);
+      await fetchEvents(); // Refresh the list
+    } catch (error: unknown) {
+      console.error("Error deleting event:", error);
       setError("Failed to delete event");
     }
   };
@@ -149,34 +242,30 @@ export default function EventsAdminPage() {
   const resetForm = () => {
     setFormData({
       title: "",
-      date: "",
-      time: "",
-      location: "",
-      description: "",
       category: "",
-      attendees: "",
-      image: "/assets/images/nttc.jpg",
-      status: "upcoming",
-      maxCapacity: 100,
-      currentRegistrations: 0,
+      content: "",
+      description: "",
+      featured: false,
+      location: "",
+      startDate: "",
+      endDate: "",
+      status: "active",
     });
   };
 
   // Open edit modal
-  const openEditModal = (event: Event) => {
+  const openEditModal = (event: AdminEvent) => {
     setEditingEvent(event);
     setFormData({
-      title: event.title,
-      date: event.date,
-      time: event.time,
-      location: event.location,
-      description: event.description,
-      category: event.category,
-      attendees: event.attendees,
-      image: event.image,
-      status: event.status,
-      maxCapacity: event.maxCapacity || 100,
-      currentRegistrations: event.currentRegistrations || 0,
+      title: event.title || "",
+      category: event.category || "",
+      content: event.content || "",
+      description: event.description || "",
+      featured: event.featured || false,
+      location: event.location || "",
+      startDate: event.startDate || "",
+      endDate: event.endDate || "",
+      status: event.status || "active",
     });
     setShowModal(true);
   };
@@ -198,14 +287,14 @@ export default function EventsAdminPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusColor = (status: Event["status"]) => {
+  const getStatusColor = (status: EventStatus) => {
     switch (status) {
-      case "registration-open":
+      case "active":
         return "bg-green-100 text-green-800";
-      case "upcoming":
-        return "bg-blue-100 text-blue-800";
+      case "inactive":
+        return "bg-yellow-100 text-yellow-800";
       case "completed":
-        return "bg-gray-100 text-gray-800";
+        return "bg-blue-100 text-blue-800";
       case "cancelled":
         return "bg-red-100 text-red-800";
       default:
@@ -303,8 +392,8 @@ export default function EventsAdminPage() {
                     className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="all">All Status</option>
-                    <option value="registration-open">Registration Open</option>
-                    <option value="upcoming">Upcoming</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
                     <option value="completed">Completed</option>
                     <option value="cancelled">Cancelled</option>
                   </select>
@@ -362,10 +451,15 @@ export default function EventsAdminPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
-                            {new Date(event.date).toLocaleDateString()}
+                            {(() => {
+                              const eventDate = event.date ?? event.startDate;
+                              return eventDate
+                                ? new Date(eventDate).toLocaleDateString()
+                                : "—";
+                            })()}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {event.time}
+                            {event.time ?? ""}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -494,14 +588,17 @@ export default function EventsAdminPage() {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Date *
+                            Start Date *
                           </label>
                           <input
                             type="date"
                             required
-                            value={formData.date}
+                            value={formData.startDate}
                             onChange={(e) =>
-                              setFormData({ ...formData, date: e.target.value })
+                              setFormData({
+                                ...formData,
+                                startDate: e.target.value,
+                              })
                             }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
@@ -509,17 +606,19 @@ export default function EventsAdminPage() {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Time *
+                            End Date *
                           </label>
                           <input
-                            type="text"
+                            type="date"
                             required
-                            value={formData.time}
+                            value={formData.endDate}
                             onChange={(e) =>
-                              setFormData({ ...formData, time: e.target.value })
+                              setFormData({
+                                ...formData,
+                                endDate: e.target.value,
+                              })
                             }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="e.g., 9:00 AM - 5:00 PM"
                           />
                         </div>
 
@@ -551,57 +650,38 @@ export default function EventsAdminPage() {
                             onChange={(e) =>
                               setFormData({
                                 ...formData,
-                                status: e.target.value as Event["status"],
+                                status: e.target.value as EventStatus,
                               })
                             }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
-                            <option value="upcoming">Upcoming</option>
-                            <option value="registration-open">
-                              Registration Open
-                            </option>
-                            <option value="completed">Completed</option>
+                            <option value="active">Active</option>
                             <option value="cancelled">Cancelled</option>
+                            <option value="completed">Completed</option>
+                            <option value="inactive">Inactive</option>
                           </select>
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Max Capacity
+                            Featured Event
                           </label>
-                          <input
-                            type="number"
-                            min="1"
-                            value={formData.maxCapacity}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                maxCapacity: parseInt(e.target.value) || 0,
-                              })
-                            }
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Maximum attendees"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Current Registrations
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            value={formData.currentRegistrations}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                currentRegistrations:
-                                  parseInt(e.target.value) || 0,
-                              })
-                            }
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Current registered count"
-                          />
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={formData.featured}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  featured: e.target.checked,
+                                })
+                              }
+                              className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                            />
+                            <label className="ml-3 text-sm text-gray-700">
+                              Mark as featured event
+                            </label>
+                          </div>
                         </div>
                       </div>
 
@@ -626,16 +706,20 @@ export default function EventsAdminPage() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Image URL
+                          Content *
                         </label>
-                        <input
-                          type="text"
-                          value={formData.image}
+                        <textarea
+                          required
+                          rows={6}
+                          value={formData.content}
                           onChange={(e) =>
-                            setFormData({ ...formData, image: e.target.value })
+                            setFormData({
+                              ...formData,
+                              content: e.target.value,
+                            })
                           }
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="/assets/images/..."
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                          placeholder="Enter detailed event content"
                         />
                       </div>
 

@@ -18,6 +18,8 @@ import {
   Clock,
   ArrowRight,
   RotateCcw,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/hooks/useAuth";
@@ -60,6 +62,11 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "inactive"
   >("all");
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
   const filterUsers = useCallback(() => {
     let filtered = [...users];
@@ -89,7 +96,18 @@ export default function UsersPage() {
     }
 
     setFilteredUsers(filtered);
+    // Reset to first page when filters change
+    setCurrentPage(1);
   }, [users, searchTerm, roleFilter, statusFilter]);
+
+  // Get current page items
+  const getCurrentPageItems = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredUsers.slice(startIndex, endIndex);
+  };
+
+  const paginatedUsers = getCurrentPageItems();
 
   const fetchUsers = async () => {
     try {
@@ -386,7 +404,7 @@ export default function UsersPage() {
               <div className="text-center py-12 text-red-600">
                 <p>{error}</p>
               </div>
-            ) : filteredUsers.length === 0 ? (
+            ) : paginatedUsers.length === 0 && filteredUsers.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                 <p>No users found</p>
@@ -417,7 +435,7 @@ export default function UsersPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredUsers.map((user, index) => (
+                    {paginatedUsers.map((user, index) => (
                       <motion.tr
                         key={user.id}
                         initial={{ opacity: 0, x: -20 }}
@@ -555,6 +573,96 @@ export default function UsersPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+            
+            {/* Pagination */}
+            {!loading && !error && filteredUsers.length > 0 && (
+              <div className="bg-white px-6 py-4 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-700">
+                    Showing{" "}
+                    <span className="font-medium">
+                      {(currentPage - 1) * itemsPerPage + 1}
+                    </span>{" "}
+                    to{" "}
+                    <span className="font-medium">
+                      {Math.min(currentPage * itemsPerPage, filteredUsers.length)}
+                    </span>{" "}
+                    of{" "}
+                    <span className="font-medium">{filteredUsers.length}</span>{" "}
+                    results
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                      className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                        currentPage === 1
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+                      }`}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Previous
+                    </motion.button>
+                    
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter((page) => {
+                          // Show first page, last page, current page, and pages around current page
+                          return (
+                            page === 1 ||
+                            page === totalPages ||
+                            Math.abs(page - currentPage) <= 1
+                          );
+                        })
+                        .map((page, index, array) => {
+                          // Add ellipsis if there's a gap
+                          const showEllipsisBefore = 
+                            index > 0 && array[index - 1] < page - 1;
+                          
+                          return (
+                            <div key={page} className="flex items-center">
+                              {showEllipsisBefore && (
+                                <span className="px-2 text-gray-400">...</span>
+                              )}
+                              <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => setCurrentPage(page)}
+                                className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                  currentPage === page
+                                    ? "bg-blue-600 text-white"
+                                    : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+                                }`}
+                              >
+                                {page}
+                              </motion.button>
+                            </div>
+                          );
+                        })}
+                    </div>
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                      className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                        currentPage === totalPages
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+                      }`}
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4" />
+                    </motion.button>
+                  </div>
+                </div>
               </div>
             )}
           </motion.div>

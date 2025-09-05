@@ -14,9 +14,7 @@ import {
   EyeOff,
   AlertCircle,
   CheckCircle,
-  X,
-  UserCheck,
-  UserX
+  X
 } from "lucide-react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,12 +27,7 @@ import {
 } from "@/lib/laravel-user";
 import Image from "next/image";
 
-const ROLE_LABELS = {
-  super_admin: "Super Admin",
-  user_management: "User Management", 
-  events: "Events Management",
-  news: "News Management"
-};
+// Role labels are now loaded dynamically from the Role model via API
 
 interface FormData {
   name: string;
@@ -42,7 +35,6 @@ interface FormData {
   password: string;
   confirmPassword: string;
   roles: string[];
-  is_active: boolean;
 }
 
 interface FormErrors {
@@ -63,20 +55,20 @@ export default function EditUserPage() {
   const userId = params.id as string;
   
   const [user, setUser] = useState<User | null>(null);
-  const [, setRoles] = useState<Role[]>([]);
+  const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [showToast, setShowToast] = useState(false);
   
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
-    roles: [],
-    is_active: true
+    roles: []
   });
   
   const [errors, setErrors] = useState<FormErrors>({});
@@ -100,15 +92,14 @@ export default function EditUserPage() {
             email: userResult.user.email,
             password: "",
             confirmPassword: "",
-            roles: userResult.user.roles || [],
-            is_active: userResult.user.is_active
+            roles: userResult.user.roles || []
           });
         } else {
           setErrors({ general: userResult.error || "Failed to load user" });
         }
         
         if (rolesResult.success && rolesResult.roles) {
-          setRoles(rolesResult.roles);
+          setAvailableRoles(rolesResult.roles);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -164,7 +155,7 @@ export default function EditUserPage() {
         name: formData.name.trim(),
         email: formData.email.trim(),
         roles: formData.roles,
-        is_active: formData.is_active
+        is_active: true // Users are automatically active
       };
 
       if (formData.password) {
@@ -175,6 +166,7 @@ export default function EditUserPage() {
 
       if (result.success) {
         setSuccessMessage("User updated successfully!");
+        setShowToast(true);
         
         if (result.user) {
           setUser(result.user);
@@ -186,7 +178,10 @@ export default function EditUserPage() {
           confirmPassword: ""
         }));
         
+        // Hide success message after 3 seconds
         setTimeout(() => setSuccessMessage(""), 3000);
+        // Hide toast after 4 seconds
+        setTimeout(() => setShowToast(false), 4000);
       } else {
         setErrors({ general: result.error || "Failed to update user" });
       }
@@ -207,7 +202,7 @@ export default function EditUserPage() {
     }));
   };
 
-  const handleInputChange = (field: keyof FormData, value: string | boolean) => {
+  const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -236,11 +231,14 @@ export default function EditUserPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full"
-        />
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"
+          />
+          <p className="text-gray-600">Loading user and roles...</p>
+        </div>
       </div>
     );
   }
@@ -322,7 +320,7 @@ export default function EditUserPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white rounded-xl shadow-sm border"
+            className="bg-white rounded-xl shadow-lg"
           >
             <div className="p-6">
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -436,78 +434,51 @@ export default function EditUserPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">User Roles *</label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.keys(ROLE_LABELS).map((roleKey) => (
+                  {availableRoles.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>Loading available roles...</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {availableRoles.map((role) => (
                       <div
-                        key={roleKey}
-                        className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                          formData.roles.includes(roleKey)
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                        key={role.name}
+                        className={`relative rounded-lg p-4 cursor-pointer transition-all shadow-md hover:shadow-lg ${
+                          formData.roles.includes(role.name)
+                            ? 'bg-blue-50 ring-2 ring-blue-500'
+                            : 'bg-white hover:bg-gray-50'
                         }`}
-                        onClick={() => handleRoleToggle(roleKey)}
+                        onClick={() => handleRoleToggle(role.name)}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                            formData.roles.includes(roleKey)
+                            formData.roles.includes(role.name)
                               ? 'border-blue-500 bg-blue-500'
                               : 'border-gray-300'
                           }`}>
-                            {formData.roles.includes(roleKey) && (
+                            {formData.roles.includes(role.name) && (
                               <div className="w-2 h-2 bg-white rounded-full" />
                             )}
                           </div>
                           <div>
                             <h3 className="font-medium text-gray-900">
-                              {ROLE_LABELS[roleKey as keyof typeof ROLE_LABELS]}
+                              {role.display_name}
                             </h3>
                             <p className="text-sm text-gray-500">
-                              {roleKey === 'super_admin' && 'Full system access'}
-                              {roleKey === 'user_management' && 'Manage users and permissions'}
-                              {roleKey === 'events' && 'Create and manage events'}
-                              {roleKey === 'news' && 'Create and manage news articles'}
+                              {role.description}
                             </p>
                           </div>
                         </div>
                       </div>
                     ))}
-                  </div>
+                    </div>
+                  )}
                   {errors.roles && (
                     <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
                       <AlertCircle className="w-4 h-4" />
                       {errors.roles}
                     </p>
                   )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Account Status</label>
-                  <div className="flex items-center gap-4">
-                    <button
-                      type="button"
-                      onClick={() => handleInputChange('is_active', true)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                        formData.is_active
-                          ? 'bg-green-100 text-green-800 border-2 border-green-300'
-                          : 'bg-gray-100 text-gray-600 border-2 border-gray-300 hover:bg-gray-200'
-                      }`}
-                    >
-                      <UserCheck className="w-4 h-4" />
-                      Active
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleInputChange('is_active', false)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                        !formData.is_active
-                          ? 'bg-red-100 text-red-800 border-2 border-red-300'
-                          : 'bg-gray-100 text-gray-600 border-2 border-gray-300 hover:bg-gray-200'
-                      }`}
-                    >
-                      <UserX className="w-4 h-4" />
-                      Inactive
-                    </button>
-                  </div>
                 </div>
 
                 <div className="flex justify-end gap-4 pt-6 border-t">
@@ -546,7 +517,7 @@ export default function EditUserPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="mt-6 bg-white rounded-xl shadow-sm border p-6"
+              className="mt-6 bg-white rounded-xl shadow-lg p-6"
             >
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Current User Info</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -572,6 +543,25 @@ export default function EditUserPage() {
             </motion.div>
           )}
         </div>
+
+        {/* Toast Notification */}
+        {showToast && (
+          <motion.div
+            initial={{ opacity: 0, x: 300 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 300 }}
+            className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3"
+          >
+            <CheckCircle className="w-5 h-5" />
+            <span className="font-medium">User updated successfully!</span>
+            <button 
+              onClick={() => setShowToast(false)}
+              className="ml-2 text-white hover:text-green-200 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
       </div>
     </ProtectedRoute>
   );
