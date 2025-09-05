@@ -21,9 +21,6 @@ export default function AnimationDemoPage() {
   const skyY = useTransform(smoothScrollY, [0, 1800], [0, -100]);
   const cityScale = useTransform(smoothScrollY, [0, 1800], [1, 1.1]);
 
-  // Video section dissolve transition
-  const videoSectionOpacity = useTransform(smoothScrollY, [1100, 2500], [0, 1]);
-  const videoSectionY = useTransform(smoothScrollY, [1500, 2500], [30, 0]);
 
   useEffect(() => {
     setIsClient(true);
@@ -127,22 +124,14 @@ export default function AnimationDemoPage() {
         </div>
       </div>
       {/* Video Header Section positioned at bottom after scroll */}
-      <div className="relative z-10 mt-auto">
+      <div className="relative z-10 -mt-30">
         <motion.section>
-          <motion.div
-            style={{ opacity: videoSectionOpacity, y: videoSectionY }}
-          >
-            <VideoHeaderSection />
-          </motion.div>
+          <VideoHeaderSection />
         </motion.section>
       </div>
       <div className="relative z-10 mt-auto">
         <motion.section>
-          <motion.div
-            style={{ opacity: videoSectionOpacity, y: videoSectionY }}
-          >
-            <WhatWeOffer />
-          </motion.div>
+          <WhatWeOffer />
         </motion.section>
       </div>
     </>
