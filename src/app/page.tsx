@@ -53,8 +53,7 @@ export default function HomePage() {
         setNewsLoading(true);
         console.log("Homepage: Starting to fetch news from Laravel backend...");
 
-        const laravelApiUrl =
-          process.env.NEXT_PUBLIC_LARAVEL_BASE_URL || "http://localhost:8000";
+        const laravelApiUrl = process.env.NEXT_PUBLIC_LARAVEL_BASE_URL;
         const response = await fetch(
           `${laravelApiUrl}/api/news/public?limit=6`
         );
