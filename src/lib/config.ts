@@ -1,8 +1,7 @@
 // Configuration constants
 export const config = {
   // Laravel Backend
-  LARAVEL_BASE_URL:
-    process.env.NEXT_PUBLIC_LARAVEL_BASE_URL || "http://localhost:8000",
+  LARAVEL_BASE_URL: process.env.NEXT_PUBLIC_LARAVEL_BASE_URL,
 
   // API Configuration
   API_TIMEOUT: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || "10000"),
