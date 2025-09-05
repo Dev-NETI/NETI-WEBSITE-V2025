@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   title: "NETI Portal - Company Profile",
   description:
     "Leading technology company dedicated to transforming businesses through innovative solutions and exceptional service delivery.",
+  icons: {
+    icon: "/assets/images/flag1.svg",
+    shortcut: "/assets/images/flag1.svg",
+    apple: "/assets/images/flag1.svg",
+  },
 };
 
 export default function RootLayout({

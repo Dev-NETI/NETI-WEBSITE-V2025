@@ -44,6 +44,7 @@ export default function HomePage() {
   }, []);
 
   // Fetch news from Laravel backend
+
   useEffect(() => {
     if (!isClient) return;
 
@@ -179,11 +180,9 @@ export default function HomePage() {
         </div>
       </div>
       {/* Video Header Section positioned at bottom after scroll */}
-      <div className="relative z-10 mt-auto">
+      <div className="relative z-10 -mt-30">
         <motion.section>
-          <motion.div
-            style={{ opacity: videoSectionOpacity, y: videoSectionY }}
-          >
+          <motion.div>
             <VideoHeaderSection />
           </motion.div>
         </motion.section>

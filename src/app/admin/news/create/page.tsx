@@ -26,7 +26,7 @@ export default function CreateNewsPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [success] = useState(false);
 
   const router = useRouter();
   const { admin } = useAuth();

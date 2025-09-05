@@ -152,3 +152,75 @@ html {
   line-height: 1.4;
   font-size: 0.875rem;
 }
+
+.loading {
+  stroke: #fff;
+  fill-opacity: 0;
+  stroke-width: 3px;
+  stroke-dasharray: 4500;
+  animation: draw 18s ease;
+  /* Responsive sizes */
+  height: 60px;
+  width: 400px;
+}
+
+/* Tablet and larger screens */
+@media (min-width: 768px) {
+  .loading {
+    height: 80px;
+    width: 600px;
+  }
+}
+
+/* Desktop and larger screens */
+@media (min-width: 1024px) {
+  .loading {
+    height: 100px;
+    width: 1000px;
+  }
+}
+
+@keyframes draw {
+  0% {
+    stroke-dashoffset: 3500;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.logo-title {
+  stroke: #fff;
+  fill-opacity: 0;
+  stroke-width: 3px;
+  stroke-dasharray: 4500;
+  animation: draw 3s ease;
+  /* Responsive sizes */
+  height: 120px;
+  width: 180px;
+}
+
+/* Tablet and larger screens */
+@media (min-width: 768px) {
+  .logo-title {
+    height: 160px;
+    width: 240px;
+  }
+}
+
+/* Desktop and larger screens */
+@media (min-width: 1024px) {
+  .logo-title {
+    height: 200px;
+    width: 300px;
+  }
+}
+
+@keyframes draw {
+  0% {
+    stroke-dashoffset: 4500;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
