@@ -233,3 +233,22 @@ html {
     width: 100%;
   }
 }
+
+/* Modal Overlay Styles */
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 2147483647 !important; /* Maximum possible z-index value */
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  isolation: isolate; /* Creates new stacking context */
+}
+
+.modal-content {
+  position: relative;
+  z-index: 1;
+}
