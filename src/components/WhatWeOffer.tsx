@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { useServiceModal } from "@/contexts/ServiceModalContext";
 import {
   Anchor,
   BookOpen,
@@ -9,10 +9,7 @@ import {
   Building,
   Ship,
   Flag,
-  X,
   ChevronRight,
-  Users,
-  CheckCircle,
 } from "lucide-react";
 import CompanyProfileVideo from "./CompanyProfileVideo";
 
@@ -158,22 +155,10 @@ const services: Service[] = [
 ];
 
 export default function WhatWeOffer() {
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-
-  const modalVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-    },
-    exit: {
-      opacity: 0,
-      scale: 0.8,
-    },
-  };
+  const { openModal } = useServiceModal();
 
   return (
-    <section className="p-12 relative overflow-hidden">
+    <section className="p-4 sm:p-6 md:p-8 lg:p-12 relative overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         <div
@@ -186,7 +171,7 @@ export default function WhatWeOffer() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-start mb-8 sm:mb-12 lg:mb-16">
           {/* Left Column - What We Offer */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -195,7 +180,7 @@ export default function WhatWeOffer() {
             transition={{ duration: 0.8 }}
           >
             <motion.h2
-              className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight"
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -210,15 +195,15 @@ export default function WhatWeOffer() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="space-y-6"
             >
-              <p className="text-xl text-white leading-relaxed text-justify">
+              <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white leading-relaxed text-justify">
                 NETI offers comprehensive maritime training programs designed to
                 meet international standards. Our programs equip maritime
                 professionals with the knowledge and skills needed to excel in
-                today&apos;s competitive maritime industry. From mandatory safety
-                training to advanced upgrading and specialized courses, we
-                ensure that each program is delivered by experienced instructors
-                using state-of-the-art facilities and modern training
-                methodologies.
+                today&apos;s competitive maritime industry. From mandatory
+                safety training to advanced upgrading and specialized courses,
+                we ensure that each program is delivered by experienced
+                instructors using state-of-the-art facilities and modern
+                training methodologies.
               </p>
             </motion.div>
           </motion.div>
@@ -234,15 +219,18 @@ export default function WhatWeOffer() {
           </motion.div>
         </div>
 
-        {/* Services Cards - 7 Columns in 1 Row */}
-        <div className="grid grid-cols-7 gap-4 overflow-x-auto">
+        {/* Services Cards - Responsive Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4">
           {services.map((service) => {
             const IconComponent = service.icon;
             return (
               <div
                 key={service.id}
-                onClick={() => setSelectedService(service)}
-                className="group relative bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 min-w-0"
+                onClick={() => {
+                  console.log('Card clicked:', service.title);
+                  openModal(service);
+                }}
+                className="group relative bg-white rounded-xl p-3 sm:p-4 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 min-w-0"
               >
                 {/* Card Background Gradient */}
                 <div
@@ -252,21 +240,23 @@ export default function WhatWeOffer() {
                 {/* Content */}
                 <div className="relative z-10 text-center">
                   {/* Icon */}
-                  <div className="mb-3">
+                  <div className="mb-2 sm:mb-3">
                     <div
-                      className={`w-10 h-10 mx-auto rounded-lg bg-gradient-to-br ${service.bgGradient} flex items-center justify-center shadow-md`}
+                      className={`w-8 h-8 sm:w-10 sm:h-10 mx-auto rounded-lg bg-gradient-to-br ${service.bgGradient} flex items-center justify-center shadow-md`}
                     >
-                      <IconComponent className={`w-5 h-5 ${service.color}`} />
+                      <IconComponent
+                        className={`w-4 h-4 sm:w-5 sm:h-5 ${service.color}`}
+                      />
                     </div>
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-sm font-bold text-gray-900 mb-2 group-hover:text-gray-800 transition-colors leading-tight">
+                  <h3 className="text-xs sm:text-sm font-bold text-gray-900 mb-1 sm:mb-2 group-hover:text-gray-800 transition-colors leading-tight">
                     {service.title}
                   </h3>
 
                   {/* Short Description */}
-                  <p className="text-gray-600 text-xs mb-3 line-clamp-2 group-hover:text-gray-700 transition-colors leading-relaxed">
+                  <p className="text-gray-600 text-xs mb-2 sm:mb-3 line-clamp-2 group-hover:text-gray-700 transition-colors leading-relaxed">
                     {service.shortDesc}
                   </p>
 
@@ -281,106 +271,6 @@ export default function WhatWeOffer() {
           })}
         </div>
       </div>
-
-      {/* Modal */}
-      <AnimatePresence>
-        {selectedService && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedService(null)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          >
-            <motion.div
-              variants={modalVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
-            >
-              {/* Header */}
-              <div
-                className={`relative p-8 bg-gradient-to-br ${selectedService.bgGradient} rounded-t-3xl`}
-              >
-                <button
-                  onClick={() => setSelectedService(null)}
-                  className="absolute top-6 right-6 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-700 hover:bg-white/30 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-
-                <div className="flex items-start gap-6">
-                  <div
-                    className={`w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center`}
-                  >
-                    <selectedService.icon
-                      className={`w-8 h-8 ${selectedService.color}`}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                      {selectedService.title}
-                    </h2>
-                    <p className="text-gray-700 text-lg">
-                      {selectedService.shortDesc}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-8">
-                {/* Description */}
-                <div className="mb-8">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-blue-600" />
-                    Program Overview
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed text-lg">
-                    {selectedService.description}
-                  </p>
-                </div>
-
-                {/* Features */}
-                <div className="mb-8">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Users className="w-5 h-5 text-blue-600" />
-                    What You&apos;ll Learn
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {selectedService.features.map((feature, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="flex items-center gap-3 p-3 bg-green-50 rounded-lg"
-                      >
-                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                        <span className="text-gray-700">{feature}</span>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* CTA */}
-                <div className="text-center">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg shadow-lg hover:shadow-xl transition-shadow duration-300"
-                  >
-                    Enroll Now
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </section>
   );
 }

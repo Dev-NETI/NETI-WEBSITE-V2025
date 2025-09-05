@@ -4,6 +4,8 @@ import PageTransition from "@/components/PageTransition";
 import CookieConsent from "@/components/CookieConsent";
 import Footer from "@/components/Footer";
 import SocialMediaModal from "@/components/FloatingSocialMediaCard";
+import { ServiceModalProvider } from "@/contexts/ServiceModalContext";
+import ServiceModal from "@/components/ServiceModal";
 
 export const metadata: Metadata = {
   title: "NETI Portal - Company Profile",
@@ -24,12 +26,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-inter antialiased">
-        <PageTransition>
-          {children}
-          <Footer />
-          <CookieConsent />
-          <SocialMediaModal />
-        </PageTransition>
+        <ServiceModalProvider>
+          <PageTransition>
+            {children}
+            <Footer />
+            <CookieConsent />
+            <SocialMediaModal />
+          </PageTransition>
+          <ServiceModal />
+        </ServiceModalProvider>
       </body>
     </html>
   );
