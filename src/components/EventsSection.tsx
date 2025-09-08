@@ -55,45 +55,14 @@ export default function EventsSection() {
     const fetchEvents = async () => {
       try {
         setEventsLoading(true);
-        const email = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-        const password = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
-
-        // First authenticate with admin credentials
-        const loginResponse = await axios.post(
-          `${
-            process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
-          }/api/admin/login`,
-          {
-            email: email,
-            password: password,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            withCredentials: true,
-          }
-        );
-
-        console.log("EventsSection: Login response:", loginResponse.data);
-
-        // Get the token from login response
-        const token =
-          loginResponse.data.token || loginResponse.data.access_token;
-
-        if (!token) {
-          throw new Error("No token received from login");
-        }
 
         // Now fetch events with the token
         const response = await axios.get(
           `${
             process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
-          }/api/admin/events`,
+          }/api/events`,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
               Accept: "application/json",
             },
@@ -118,9 +87,7 @@ export default function EventsSection() {
 
           // Filter to show registration-open or upcoming events and sort by date (earliest first)
           const openOrUpcoming = eventsData.filter(
-            (event: Event) =>
-              event.status === "registration-open" ||
-              event.status === "upcoming"
+            (event: Event) => event.status !== "cancelled"
           );
           const sortedEvents = openOrUpcoming.sort(
             (a: Event, b: Event) =>
