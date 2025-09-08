@@ -1,4 +1,5 @@
 // Laravel backend authentication utilities
+import { Logger } from "./api-utils";
 import { config } from "./config";
 
 const LARAVEL_BASE_URL = config.LARAVEL_BASE_URL;
@@ -123,9 +124,11 @@ export async function verifyLaravelToken(): Promise<LaravelAuthResponse> {
       removeAuthToken();
       console.warn("Token verification failed", { error: result.error });
     } else {
-      console.log("Token verification successful", {
+      Logger.info("Token verification successful", {
         role: result.admin?.role,
       });
+      // Include the token in the response
+      result.token = token;
     }
 
     return result;

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import AdminAuthGuard from "@/components/AdminAuthGuard";
 import AdminHeader from "@/components/AdminHeader";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,26 +15,7 @@ import {
   Save,
   X,
 } from "lucide-react";
-import axios from "axios";
-
-type EventStatus = "active" | "inactive" | "completed" | "cancelled";
-
-interface AdminEvent {
-  id: string;
-  title: string;
-  category?: string;
-  content?: string;
-  description: string;
-  featured?: boolean;
-  location?: string;
-  startDate?: string;
-  endDate?: string;
-  status: EventStatus;
-  date?: string;
-  time?: string;
-  currentRegistrations?: number;
-  maxCapacity?: number;
-}
+import { verifyLaravelToken } from "@/lib/laravel-auth";
 
 interface FormData {
   title: string;
@@ -44,17 +26,20 @@ interface FormData {
   location: string;
   startDate: string;
   endDate: string;
-  status: EventStatus;
+  status: string;
 }
 
 export default function EventsAdminPage() {
-  const [events, setEvents] = useState<AdminEvent[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [token, setToken] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showModal, setShowModal] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<AdminEvent | null>(null);
+  const [editingEvent, setEditingEvent] = useState<any | null>(null);
   const [formData, setFormData] = useState<FormData>({
     title: "",
     category: "",
@@ -68,52 +53,49 @@ export default function EventsAdminPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  // Authentication helper
-  const getAuthenticatedAxios = async () => {
-    // First authenticate with admin credentials
-    const loginResponse = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/login`,
-      {
-        email: process.env.NEXT_PUBLIC_ADMIN_EMAIL,
-        password: process.env.NEXT_PUBLIC_ADMIN_PASSWORD,
-      },
-      {
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const result = await verifyLaravelToken();
+        console.log(result);
+        if (result.success && result.token) {
+          setAuthenticated(true);
+          setToken(result.token);
+        } else {
+          router.push("/admin/login");
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        router.push("/admin/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  // Fetch events from API
+  const fetchEvents = async () => {
+    if (!token) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch("http://localhost:8000/api/events", {
+        method: "GET",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        withCredentials: true,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    );
 
-    const token = loginResponse.data.token || loginResponse.data.access_token;
-    if (!token) {
-      throw new Error("No token received from login");
-    }
-
-    return token;
-  };
-
-  // Fetch events
-  const fetchEvents = useCallback(async () => {
-    try {
-      setLoading(true);
-      const token = await getAuthenticatedAxios();
-
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/events`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          withCredentials: true,
-        }
-      );
-
-      const eventsData =
-        response.data.data || response.data.events || response.data;
+      const data = await response.json();
+      const eventsData = data.data || data.events || data;
 
       if (eventsData && Array.isArray(eventsData)) {
         setEvents(eventsData);
@@ -126,20 +108,21 @@ export default function EventsAdminPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
+  // Fetch events when authenticated
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    if (authenticated && token) {
+      fetchEvents();
+    }
+  }, [authenticated, token]);
 
-  // Handle form submission
+  // Handle form submission with API call
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      const token = await getAuthenticatedAxios();
-
       // Prepare the payload according to EventRequest structure
       const eventPayload = {
         title: formData.title,
@@ -153,83 +136,78 @@ export default function EventsAdminPage() {
         status: formData.status,
       };
 
+      let response;
       if (editingEvent) {
         // Update existing event
-        await axios.put(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/events/${editingEvent.id}`,
-          eventPayload,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            withCredentials: true,
-          }
-        );
+        let url = `${process.env.NEXT_PUBLIC_LARAVEL_BASE_URL}/api/admin/events/${editingEvent.id}`;
+
+        response = await fetch(url, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(eventPayload),
+        });
       } else {
         // Create new event
-        await axios.post(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/events`,
-          eventPayload,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            withCredentials: true,
-          }
+        let url = `${process.env.NEXT_PUBLIC_LARAVEL_BASE_URL}/api/admin/events`;
+
+        response = await fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(eventPayload),
+        });
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
         );
       }
 
-      await fetchEvents(); // Refresh the list
+      await fetchEvents();
       setShowModal(false);
       setEditingEvent(null);
       resetForm();
-    } catch (error: unknown) {
-      console.error("Error saving event:", error);
-      if (axios.isAxiosError(error)) {
-        const apiMessage = error.response?.data?.message as string | undefined;
-        const apiErrors = error.response?.data?.errors as
-          | Record<string, string[]>
-          | undefined;
-        if (apiMessage) {
-          setError(`Failed to save event: ${apiMessage}`);
-        } else if (apiErrors) {
-          const errorMessages = Object.values(apiErrors).flat();
-          setError(`Validation errors: ${errorMessages.join(", ")}`);
-        } else {
-          setError("Failed to save event");
-        }
-      } else {
-        setError("Failed to save event");
-      }
+    } catch (err) {
+      console.error("Error saving event:", err);
+      setError(
+        err instanceof Error
+          ? `Failed to save event: ${err.message}`
+          : "Failed to save event"
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Handle delete
+  // Handle delete with API call
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this event?")) {
       return;
     }
 
     try {
-      const token = await getAuthenticatedAxios();
+      let url = `${process.env.NEXT_PUBLIC_LARAVEL_BASE_URL}/api/admin/events/${id}`;
+      const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
 
-      await axios.delete(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/events/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          withCredentials: true,
-        }
-      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       await fetchEvents(); // Refresh the list
     } catch (error: unknown) {
@@ -254,7 +232,7 @@ export default function EventsAdminPage() {
   };
 
   // Open edit modal
-  const openEditModal = (event: AdminEvent) => {
+  const openEditModal = (event: any) => {
     setEditingEvent(event);
     setFormData({
       title: event.title || "",
@@ -287,7 +265,7 @@ export default function EventsAdminPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusColor = (status: EventStatus) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
         return "bg-green-100 text-green-800";
@@ -302,7 +280,7 @@ export default function EventsAdminPage() {
     }
   };
 
-  if (loading) {
+  if (loading || !authenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <motion.div
@@ -315,7 +293,7 @@ export default function EventsAdminPage() {
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
             className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full"
           />
-          Loading Events...
+          {!authenticated ? "Authenticating..." : "Loading Events..."}
         </motion.div>
       </div>
     );
@@ -406,7 +384,7 @@ export default function EventsAdminPage() {
             </div>
 
             {/* Events Table */}
-            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+            <div className="bg-white rounded-lg shadow-sm border overflow-hidden mt-6">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -423,85 +401,88 @@ export default function EventsAdminPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Registrations
-                      </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredEvents.map((event) => (
-                      <motion.tr
-                        key={event.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="hover:bg-gray-50"
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900 line-clamp-1">
-                              {event.title}
+                    {filteredEvents.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="px-6 py-12 text-center text-gray-500"
+                        >
+                          <div className="flex flex-col items-center">
+                            <AlertCircle className="w-12 h-12 text-gray-400 mb-4" />
+                            <p className="text-lg font-medium">
+                              No events found
+                            </p>
+                            <p className="text-sm">
+                              Create your first event to get started
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredEvents.map((event) => (
+                        <motion.tr
+                          key={event.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="hover:bg-gray-50"
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900 line-clamp-1">
+                                {event.title}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {event.category}
+                              </div>
                             </div>
-                            <div className="text-sm text-gray-500">
-                              {event.category}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              {new Date(event.startDate).toLocaleDateString()}
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {(() => {
-                              const eventDate = event.date ?? event.startDate;
-                              return eventDate
-                                ? new Date(eventDate).toLocaleDateString()
-                                : "—";
-                            })()}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {event.time ?? ""}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 line-clamp-1">
-                            {event.location}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                              event.status
-                            )}`}
-                          >
-                            {event.status
-                              .replace("-", " ")
-                              .replace(/\b\w/g, (l) => l.toUpperCase())}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {event.currentRegistrations || 0}
-                          {event.maxCapacity ? ` / ${event.maxCapacity}` : ""}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => openEditModal(event)}
-                              className="text-blue-600 hover:text-blue-800 p-1"
-                              title="Edit event"
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900 line-clamp-1">
+                              {event.location}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                                event.status
+                              )}`}
                             >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(event.id)}
-                              className="text-red-600 hover:text-red-800 p-1"
-                              title="Delete event"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    ))}
+                              {event.status.charAt(0).toUpperCase() +
+                                event.status.slice(1)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => openEditModal(event)}
+                                className="text-blue-600 hover:text-blue-800 p-1"
+                                title="Edit event"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(event.id)}
+                                className="text-red-600 hover:text-red-800 p-1"
+                                title="Delete event"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </motion.tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -650,7 +631,7 @@ export default function EventsAdminPage() {
                             onChange={(e) =>
                               setFormData({
                                 ...formData,
-                                status: e.target.value as EventStatus,
+                                status: e.target.value,
                               })
                             }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -662,7 +643,7 @@ export default function EventsAdminPage() {
                           </select>
                         </div>
 
-                        <div>
+                        <div className="md:col-span-2">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Featured Event
                           </label>
